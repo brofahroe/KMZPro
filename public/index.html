@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KMZPro — Automasi Opname FTTH &amp; Toolkit KMZ</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-2: #273549;
+      --border: #334155;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --primary: #38bdf8;
+      --primary-dark: #0284c7;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .container { max-width: 1280px; margin: 0 auto; }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+    header p { font-size: 0.9rem; color: var(--muted); }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .upload-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 820px) {
+      .upload-grid { grid-template-columns: 1fr; }
+    }
+    .dropzone {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .dropzone.dragover {
+      border-color: var(--primary);
+      background: rgba(56, 189, 248, 0.08);
+    }
+    .dropzone strong { color: var(--primary); }
+    .dropzone .file-name {
+      margin-top: 6px;
+      font-size: 0.9rem;
+      color: var(--success);
+      font-weight: 600;
+    }
+    .options-box h3 { font-size: 1rem; margin-bottom: 12px; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label {
+      display: block;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .form-group input[type="number"],
+    .form-group select,
+    .toolbar input,
+    .toolbar select {
+      width: 100%;
+      padding: 8px 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.88rem;
+      margin-top: 8px;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    button:active:not(:disabled) { transform: scale(0.98); }
+    .btn-primary { background: var(--primary); color: #0f172a; }
+    .btn-success { background: var(--success); color: #052e16; }
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      display: none;
+    }
+    .alert.error { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); color: #fecaca; }
+    .alert.info { background: rgba(56, 189, 248, 0.12); border: 1px solid var(--primary); color: #bae6fd; }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .kpi {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .kpi .label { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .kpi .value { font-size: 1.5rem; font-weight: 700; margin-top: 4px; color: var(--text); }
+    .kpi .sub { font-size: 0.78rem; color: var(--muted); }
+    .pole-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .badge {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 0.82rem;
+    }
+    .badge strong { color: var(--primary); }
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .toolbar-left { display: flex; gap: 10px; flex-wrap: wrap; flex: 1; }
+    .toolbar input { max-width: 280px; }
+    .toolbar select { max-width: 180px; }
+    .table-wrap {
+      overflow-x: auto;
+      max-height: 540px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    thead th {
+      position: sticky;
+      top: 0;
+      background: var(--surface-2);
+      color: var(--text);
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      z-index: 1;
+    }
+    tbody td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
+    td.num, th.num { text-align: center; }
+    td.remark { white-space: normal; min-width: 180px; color: var(--muted); }
+    .pill-line {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: var(--surface);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #0f172a;
+      border-color: var(--primary);
+    }
+    .btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    .btn-danger-sm {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      padding: 4px 10px;
+      font-size: 0.78rem;
+      border-radius: 6px;
+    }
+    .inline-input {
+      width: 96px;
+      padding: 6px 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.85rem;
+      text-align: right;
+    }
+    .inline-input.text-left { width: 150px; text-align: left; }
+    .cut-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      align-items: end;
+    }
+    .formula-note {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: var(--bg);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div style="display:flex; align-items:center; gap:14px;">
+        <img src="/favicon.svg" alt="KMZPro Logo" width="48" height="48" style="border-radius:12px; flex-shrink:0;" />
+        <div>
+          <h1 style="display:flex; align-items:center; gap:8px; margin:0;">
+            <span><span style="color:#f1f5f9;">KMZ</span><span style="color:#38bdf8;">Pro</span></span>
+            <span style="font-size:0.72rem; font-weight:600; padding:2px 8px; border-radius:999px; background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3);">FTTH Suite</span>
+          </h1>
+          <p style="margin-top:2px;">Automasi Opname Pole &amp; Aksesoris, Kabel Potongan, serta Edit KMZ dalam Satu Platform</p>
+        </div>
+      </div>
+    </header>
+
+    <div id="alertBox" class="alert"></div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="opname">Opname Aksesoris &amp; Pole</button>
+      <button class="tab-btn" data-tab="cutcable">Penghitung Kabel Potongan</button>
+      <button class="tab-btn" data-tab="editkmz">Edit KMZ (Jalur MF)</button>
+      <button class="tab-btn" data-tab="cleankmz">Bersihkan KMZ (Filter Item)</button>
+      <button class="tab-btn" data-tab="batchcsv">Batch Summary → CSV</button>
+    </div>
+
+    <div id="tab-opname" class="tab-panel">
+    <div class="card">
+      <div class="upload-grid">
+        <div>
+          <div id="dropzone" class="dropzone">
+            <div>📂 Tarik &amp; lepaskan file <strong>.kmz</strong> atau <strong>.kml</strong> di sini (bisa banyak file)</div>
+            <div style="font-size: 0.82rem; color: var(--muted);">atau klik untuk memilih satu atau beberapa file (maks. 500 file)</div>
+            <div id="fileName" class="file-name"></div>
+            <input type="file" id="fileInput" accept=".kmz,.kml" multiple class="hidden" />
+          </div>
+        </div>
+        <div class="options-box">
+          <h3>Aturan Perhitungan</h3>
+          <div class="form-group">
+            <label for="networkMode">Jenis Jaringan / Kabel</label>
+            <select id="networkMode">
+              <option value="auto">Auto-Deteksi (Distribusi / Feeder)</option>
+              <option value="distribusi">Distribusi (Slack di FAT / FDT)</option>
+              <option value="feeder">Subfeeder / SF / MF / HF / Feeder (Slack per 400m)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="angleThreshold">Batas Sudut Tikungan Dead End (°)</label>
+            <input type="number" id="angleThreshold" value="30" min="1" max="179" />
+          </div>
+          <div class="form-group">
+            <label for="maxConsecSusp">Maks. Suspension Berurutan</label>
+            <input type="number" id="maxConsecSusp" value="2" min="1" max="10" />
+          </div>
+          <label class="checkbox-row">
+            <input type="checkbox" id="includeExisting" checked />
+            Sertakan Existing Pole untuk aksesoris kabel
+          </label>
+          <div class="actions">
+            <button id="btnAnalyze" class="btn-primary" disabled>Proses &amp; Hitung</button>
+            <button id="btnExport" class="btn-success" disabled>Download Opname (.xlsx)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="resultSection" class="hidden">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+          <div>
+            <div style="font-size:0.8rem; color:var(--muted);">CLUSTER</div>
+            <h2 id="clusterTitle" style="font-size:1.2rem;">-</h2>
+          </div>
+          <div id="poleBadges" class="pole-badges"></div>
+        </div>
+
+        <div id="kpiGrid" class="kpi-grid"></div>
+      </div>
+
+      <div class="card">
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <input type="text" id="searchInput" placeholder="Cari POLE ID, tipe, atau remark..." />
+            <select id="lineFilter">
+              <option value="ALL">Semua LINE</option>
+            </select>
+          </div>
+          <div id="rowCounter" style="font-size:0.85rem; color:var(--muted);"></div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>NO</th>
+                <th>POLE ID</th>
+                <th>TIPE POLE</th>
+                <th>LINE</th>
+                <th class="num">DEAD END</th>
+                <th class="num">SUSPENSION</th>
+                <th class="num">SLACK HANGER</th>
+                <th class="num">POLE CLAMP</th>
+                <th class="num">BULDOG GRIP</th>
+                <th>REMARK</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <div id="tab-cutcable" class="tab-panel hidden">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+          <div>
+            <h2 style="font-size:1.15rem;">Penghitung Kabel Potongan</h2>
+            <p style="font-size:0.85rem; color:var(--muted);">Otomatis terisi dari panjang rute kabel &amp; jumlah FAT di KMZ. Semua nilai dapat diubah manual.</p>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button id="btnResetCutKmz" class="btn-secondary" disabled>Reset ke Data KMZ</button>
+            <button id="btnAddCutRow" class="btn-secondary">+ Tambah Line Manual</button>
+            <button id="btnExportCutCsv" class="btn-success">Download CSV</button>
+          </div>
+        </div>
+
+        <div class="cut-controls">
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="globalSlack">Panjang Slack Default (m)</label>
+            <input type="number" id="globalSlack" value="20" min="0" step="1" />
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="globalFactor">Faktor Pengali Default (1.03 = +3%)</label>
+            <input type="number" id="globalFactor" value="1.03" min="0.1" step="0.01" />
+          </div>
+          <div>
+            <button id="btnApplyGlobalCut" class="btn-primary" style="width:100%;">Terapkan ke Semua Line</button>
+          </div>
+        </div>
+
+        <div class="formula-note">
+          Rumus: <strong>Kabel Potong = (Panjang Rute + ((Jumlah FAT/Slack + 1) × Panjang Slack)) × Faktor</strong>
+          &nbsp;|&nbsp; Untuk <strong>Feeder / SF / MF / HF / Subfeeder</strong>: <strong>Jumlah Slack = ⌈Panjang Rute / 400⌉</strong> (dibulatkan ke atas).
+        </div>
+      </div>
+
+      <div id="cutKpiGrid" class="kpi-grid"></div>
+
+      <div class="card">
+        <div id="cutEmptyNotice" style="color:var(--muted); font-size:0.9rem; margin-bottom:10px;">
+          Belum ada data KMZ. Unggah &amp; proses file KMZ di tab <strong>Opname Aksesoris &amp; Pole</strong>, atau klik <strong>+ Tambah Line Manual</strong>.
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>NO</th>
+                <th>LINE</th>
+                <th>NAMA KABEL (KMZ)</th>
+                <th>TIPE KABEL</th>
+                <th class="num">PANJANG RUTE (m)</th>
+                <th class="num">JUMLAH FAT / SLACK</th>
+                <th class="num">PANJANG SLACK (m)</th>
+                <th class="num">FAKTOR (×)</th>
+                <th class="num">KABEL POTONG (m)</th>
+                <th class="num">AKSI</th>
+              </tr>
+            </thead>
+            <tbody id="cutTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-editkmz" class="tab-panel hidden">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+          <div>
+            <h2 style="font-size:1.15rem;">Edit KMZ — Upgrade Pole 2.5" &amp; 3" ke 4" (Jalur MF)</h2>
+            <p style="font-size:0.85rem; color:var(--muted);">Pole NEW 7-2.5 dan NEW 7-3 yang dilalui jalur kabel MF (≤ toleransi jarak) dipindah ke folder NEW POLE 7-4 dan disesuaikan warna/style-nya.</p>
+          </div>
+          <button id="btnUseTab1Kmz" class="btn-secondary" disabled>Pakai KMZ dari Tab 1</button>
+        </div>
+
+        <div class="upload-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 16px;">
+          <div id="baseKmzDropzone" class="dropzone" style="padding:24px 16px;">
+            <div>📂 <strong>1. KMZ Awal</strong> (.kmz / .kml)</div>
+            <div style="font-size:0.8rem; color:var(--muted);">Tarik &amp; lepaskan atau klik untuk memilih</div>
+            <div id="baseKmzName" class="file-name"></div>
+            <input type="file" id="baseKmzInput" accept=".kmz,.kml" class="hidden" />
+          </div>
+          <div id="mfKmzDropzone" class="dropzone" style="padding:24px 16px;">
+            <div>🧵 <strong>2. KMZ Jalur MF</strong> (.kmz / .kml)</div>
+            <div style="font-size:0.8rem; color:var(--muted);">Berisi rute LineString kabel MF</div>
+            <div id="mfKmzName" class="file-name"></div>
+            <input type="file" id="mfKmzInput" accept=".kmz,.kml" class="hidden" />
+          </div>
+        </div>
+
+        <div class="cut-controls">
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="mfTolerance">Toleransi Jarak ke Jalur MF (meter)</label>
+            <input type="number" id="mfTolerance" value="5" min="0.5" max="100" step="0.5" />
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label>Warna Pole 4" (jika folder 7-4 kosong / override)</label>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <input type="color" id="mfPoleColor" value="#ef4444" style="width:48px; height:36px; border:none; background:none; cursor:pointer;" />
+              <label style="display:flex; align-items:center; gap:6px; margin:0; font-size:0.85rem; color:var(--text);">
+                <input type="checkbox" id="mfOverrideColor" />
+                Paksa pakai warna ini
+              </label>
+            </div>
+          </div>
+          <div class="actions" style="margin-top:0;">
+            <button id="btnMfPreview" class="btn-primary" disabled>Preview Perubahan</button>
+            <button id="btnMfExport" class="btn-success" disabled>Download KMZ Hasil Edit</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="mfResultSection" class="hidden">
+        <div id="mfKpiGrid" class="kpi-grid"></div>
+        <div class="card">
+          <div style="font-size:0.9rem; font-weight:600; margin-bottom:10px;">Daftar Pole yang Diubah ke NEW POLE 7-4</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>NO</th>
+                  <th>POLE ID</th>
+                  <th>LINE</th>
+                  <th>ASAL</th>
+                  <th>MENJADI</th>
+                  <th class="num">JARAK KE MF (m)</th>
+                </tr>
+              </thead>
+              <tbody id="mfTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-cleankmz" class="tab-panel hidden">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+          <div>
+            <h2 style="font-size:1.15rem;">Bersihkan KMZ — Hapus / Sembunyikan Item</h2>
+            <p style="font-size:0.85rem; color:var(--muted);">Menghapus atau menyembunyikan folder BOUNDARY CLUSTER, BOUNDARY FAT, HP COVER, HP UNCOVER, dan SLACK HANGER agar peta lebih ringan dan bersih.</p>
+          </div>
+          <button id="btnUseTab1CleanKmz" class="btn-secondary" disabled>Pakai KMZ dari Tab 1</button>
+        </div>
+
+        <div class="upload-grid">
+          <div id="cleanKmzDropzone" class="dropzone">
+            <div>📂 Tarik &amp; lepaskan file <strong>.kmz</strong> atau <strong>.kml</strong> di sini</div>
+            <div style="font-size:0.82rem; color:var(--muted);">atau klik untuk memilih file dari komputer</div>
+            <div id="cleanKmzName" class="file-name"></div>
+            <input type="file" id="cleanKmzInput" accept=".kmz,.kml" class="hidden" />
+          </div>
+
+          <div class="options-box">
+            <h3>Item yang Dihapus / Disembunyikan</h3>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
+              <label class="checkbox-row" style="margin-top:0;"><input type="checkbox" class="clean-target" value="BOUNDARY CLUSTER" checked /> BOUNDARY CLUSTER</label>
+              <label class="checkbox-row" style="margin-top:0;"><input type="checkbox" class="clean-target" value="BOUNDARY FAT" checked /> BOUNDARY FAT</label>
+              <label class="checkbox-row" style="margin-top:0;"><input type="checkbox" class="clean-target" value="HP COVER" checked /> HP COVER</label>
+              <label class="checkbox-row" style="margin-top:0;"><input type="checkbox" class="clean-target" value="HP UNCOVER" checked /> HP UNCOVER</label>
+              <label class="checkbox-row" style="margin-top:0;"><input type="checkbox" class="clean-target" value="SLACK HANGER" checked /> SLACK HANGER</label>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="cleanMode">Aksi</label>
+                <select id="cleanMode">
+                  <option value="remove">Hapus Permanen (Ringankan File)</option>
+                  <option value="hide">Sembunyikan (visibility=0)</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="cleanFormat">Format Output</label>
+                <select id="cleanFormat">
+                  <option value="kmz">KMZ (.kmz)</option>
+                  <option value="kml">KML (.kml)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button id="btnCleanPreview" class="btn-primary" disabled>Preview Pengurangan</button>
+              <button id="btnCleanExport" class="btn-success" disabled>Download Hasil</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="cleanResultSection" class="hidden">
+        <div id="cleanKpiGrid" class="kpi-grid"></div>
+        <div class="card">
+          <div style="font-size:0.9rem; font-weight:600; margin-bottom:10px;">Rincian Item yang Diproses</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>NO</th>
+                  <th>KATEGORI FOLDER</th>
+                  <th class="num">JUMLAH FOLDER</th>
+                  <th class="num">JUMLAH PLACEMARK</th>
+                  <th>STATUS</th>
+                </tr>
+              </thead>
+              <tbody id="cleanTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-batchcsv" class="tab-panel hidden">
+      <div class="card">
+        <div style="margin-bottom:14px;">
+          <h2 style="font-size:1.15rem;">Batch Summary KMZ → CSV (Multi-File)</h2>
+          <p style="font-size:0.85rem; color:var(--muted);">Unggah satu atau banyak file KMZ/KML sekaligus untuk mengekspor ringkasan Cluster, Pole, FDT, Line per FDT, Jenis Kabel, dan Jumlah FAT per Line ke dalam 1 file CSV.</p>
+        </div>
+
+        <div id="batchDropzone" class="dropzone" style="margin-bottom:14px;">
+          <div>📚 Tarik &amp; lepaskan <strong>banyak file .kmz / .kml</strong> sekaligus di sini</div>
+          <div style="font-size:0.82rem; color:var(--muted);">atau klik untuk memilih beberapa file dari komputer (maks. 500 file)</div>
+          <div id="batchFileNames" class="file-name"></div>
+          <input type="file" id="batchKmzInput" accept=".kmz,.kml" multiple class="hidden" />
+        </div>
+
+        <div class="actions" style="margin-top:0;">
+          <button id="btnBatchPreview" class="btn-primary" disabled>Preview Summary</button>
+          <button id="btnBatchExport" class="btn-success" disabled>Download Summary (.csv)</button>
+        </div>
+      </div>
+
+      <div id="batchResultSection" class="hidden">
+        <div id="batchKpiGrid" class="kpi-grid"></div>
+        <div class="card">
+          <div style="font-size:0.9rem; font-weight:600; margin-bottom:10px;">Preview Data Summary (Per Line &amp; FDT)</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>NO</th>
+                  <th>NAMA CLUSTER</th>
+                  <th class="num">TOTAL POLE</th>
+                  <th class="num">NEW</th>
+                  <th class="num">EXS</th>
+                  <th class="num">JML FDT</th>
+                  <th>FDT ID</th>
+                  <th class="num">SEG/FDT</th>
+                  <th>SEGMENT / LINE</th>
+                  <th>JENIS KABEL</th>
+                  <th class="num">RUTE (m)</th>
+                  <th class="num">FAT / SEGMENT</th>
+                </tr>
+              </thead>
+              <tbody id="batchTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const fileNameEl = document.getElementById('fileName');
+    const btnAnalyze = document.getElementById('btnAnalyze');
+    const btnExport = document.getElementById('btnExport');
+    const alertBox = document.getElementById('alertBox');
+    const resultSection = document.getElementById('resultSection');
+    const clusterTitle = document.getElementById('clusterTitle');
+    const poleBadges = document.getElementById('poleBadges');
+    const kpiGrid = document.getElementById('kpiGrid');
+    const searchInput = document.getElementById('searchInput');
+    const lineFilter = document.getElementById('lineFilter');
+    const tableBody = document.getElementById('tableBody');
+    const rowCounter = document.getElementById('rowCounter');
+
+    let selectedFiles = [];
+    let selectedFile = null;
+    let currentOpname = null;
+
+    function showAlert(msg, type = 'error') {
+      alertBox.textContent = msg;
+      alertBox.className = `alert ${type}`;
+      alertBox.style.display = 'block';
+    }
+    function hideAlert() {
+      alertBox.style.display = 'none';
+    }
+
+    function setFiles(fileList) {
+      const arr = Array.from(fileList || []).filter((f) => /\.(kmz|kml)$/i.test(f.name));
+      if (arr.length === 0) return;
+      selectedFiles = arr;
+      selectedFile = arr[0];
+      currentOpname = null;
+      if (arr.length === 1) {
+        fileNameEl.textContent = `Terpilih: ${arr[0].name} (${(arr[0].size / 1024).toFixed(1)} KB)`;
+      } else {
+        const previewNames = arr.slice(0, 2).map((f) => f.name).join(', ');
+        const extra = arr.length > 2 ? ` +${arr.length - 2} lainnya` : '';
+        fileNameEl.textContent = `Terpilih ${arr.length} file: ${previewNames}${extra}`;
+      }
+      btnAnalyze.disabled = false;
+      btnExport.disabled = false;
+      const btnUseTab1 = document.getElementById('btnUseTab1Kmz');
+      if (btnUseTab1) btnUseTab1.disabled = false;
+      const btnUseTab1Clean = document.getElementById('btnUseTab1CleanKmz');
+      if (btnUseTab1Clean) btnUseTab1Clean.disabled = false;
+      hideAlert();
+    }
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => setFiles(e.target.files));
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) {
+        setFiles(e.dataTransfer.files);
+      }
+    });
+
+    function buildFormData() {
+      const fd = new FormData();
+      for (const f of selectedFiles) {
+        fd.append('kmzFiles', f);
+      }
+      fd.append('networkMode', document.getElementById('networkMode').value);
+      fd.append('angleThreshold', document.getElementById('angleThreshold').value);
+      fd.append('maxConsecSusp', document.getElementById('maxConsecSusp').value);
+      fd.append('includeExisting', document.getElementById('includeExisting').checked);
+      return fd;
+    }
+
+    btnAnalyze.addEventListener('click', async () => {
+      if (!selectedFile) return;
+      hideAlert();
+      btnAnalyze.disabled = true;
+      btnAnalyze.textContent = 'Memproses...';
+      try {
+        const res = await fetch('/api/analyze', { method: 'POST', body: buildFormData() });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal memproses KMZ');
+        currentOpname = data.opname;
+        renderResult(currentOpname);
+      } catch (err) {
+        showAlert(err.message, 'error');
+      } finally {
+        btnAnalyze.disabled = false;
+        btnAnalyze.textContent = 'Proses & Hitung';
+      }
+    });
+
+    btnExport.addEventListener('click', async () => {
+      if (!selectedFile) return;
+      hideAlert();
+      btnExport.disabled = true;
+      btnExport.textContent = 'Menyiapkan Excel...';
+      try {
+        const res = await fetch('/api/export', { method: 'POST', body: buildFormData() });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Gagal mengekspor Excel');
+        }
+        const blob = await res.blob();
+        const disp = res.headers.get('Content-Disposition') || '';
+        const match = disp.match(/filename="([^"]+)"/);
+        const filename = match ? match[1] : 'Opname.xlsx';
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        showAlert(err.message, 'error');
+      } finally {
+        btnExport.disabled = false;
+        btnExport.textContent = 'Download Opname (.xlsx)';
+      }
+    });
+
+    function renderResult(opname) {
+      resultSection.classList.remove('hidden');
+      clusterTitle.textContent = opname.clusterTitle || '-';
+
+      const t = opname.totals;
+      const hasFeeder = (opname.cables || []).some((c) => c.cableKind === 'feeder');
+      const cableLabel = hasFeeder ? 'Kabel Feeder / MF / SF' : 'Kabel (Label KMZ)';
+      const kpis = [
+        { label: 'Total Pole', value: t.totalPoles, sub: `New: ${t.newPoles} | Existing: ${t.existingPoles}` },
+        { label: 'Dead End', value: t.deadEnd, sub: 'pcs' },
+        { label: 'Suspension', value: t.suspension, sub: 'pcs' },
+        { label: 'Slack Hanger', value: t.slackHanger, sub: 'pcs' },
+        { label: 'Pole Clamp', value: t.poleClamp, sub: 'pcs' },
+        { label: 'Buldog Grip', value: t.buldogGrip, sub: 'pcs' },
+        { label: 'Sling Wire', value: `${t.slingWireMeters} m`, sub: `${opname.slings.length} segmen` },
+        { label: cableLabel, value: `${t.cableNominalMeters} m`, sub: `2D rute: ${t.cable2DMeters} m` },
+      ];
+      kpiGrid.innerHTML = kpis
+        .map(
+          (k) => `<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>`
+        )
+        .join('');
+
+      poleBadges.innerHTML = Object.entries(t.poleByLabel)
+        .map(([lbl, cnt]) => `<span class="badge">${lbl}: <strong>${cnt}</strong> btg</span>`)
+        .join('');
+
+      const lines = [...new Set(opname.rows.map((r) => r.line))];
+      lineFilter.innerHTML =
+        '<option value="ALL">Semua LINE</option>' +
+        lines.map((l) => `<option value="${l}">${l}</option>`).join('');
+
+      renderTable();
+      populateCutRowsFromOpname(opname);
+    }
+
+    function renderTable() {
+      if (!currentOpname) return;
+      const q = searchInput.value.trim().toLowerCase();
+      const line = lineFilter.value;
+
+      const filtered = currentOpname.rows.filter((r) => {
+        if (line !== 'ALL' && r.line !== line) return false;
+        if (!q) return true;
+        return (
+          r.poleId.toLowerCase().includes(q) ||
+          r.label.toLowerCase().includes(q) ||
+          (r.cluster || '').toLowerCase().includes(q) ||
+          r.remark.toLowerCase().includes(q)
+        );
+      });
+
+      rowCounter.textContent = `Menampilkan ${filtered.length} dari ${currentOpname.rows.length} pole`;
+      tableBody.innerHTML = filtered
+        .map(
+          (r, idx) => `
+          <tr>
+            <td>${idx + 1}</td>
+            <td><strong>${r.poleId}</strong>${r.cluster ? `<div style="font-size:0.72rem; color:var(--muted);">${r.cluster}</div>` : ''}</td>
+            <td>${r.label}</td>
+            <td><span class="pill-line">${r.line}</span></td>
+            <td class="num">${r.deadEnd || ''}</td>
+            <td class="num">${r.suspension || ''}</td>
+            <td class="num">${r.slackHanger || ''}</td>
+            <td class="num">${r.poleClamp || ''}</td>
+            <td class="num">${r.buldogGrip || ''}</td>
+            <td class="remark">${r.remark || '-'}</td>
+          </tr>`
+        )
+        .join('');
+    }
+
+    searchInput.addEventListener('input', renderTable);
+    lineFilter.addEventListener('change', renderTable);
+
+    // --- Tab Navigation ---
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+    tabBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.tab;
+        tabBtns.forEach((b) => b.classList.toggle('active', b === btn));
+        tabPanels.forEach((p) => p.classList.toggle('hidden', p.id !== `tab-${target}`));
+        if (target === 'cutcable' && selectedFile && !currentOpname) {
+          btnAnalyze.click();
+        }
+      });
+    });
+
+    // --- Kabel Potongan Calculator ---
+    const globalSlackEl = document.getElementById('globalSlack');
+    const globalFactorEl = document.getElementById('globalFactor');
+    const btnApplyGlobalCut = document.getElementById('btnApplyGlobalCut');
+    const btnResetCutKmz = document.getElementById('btnResetCutKmz');
+    const btnAddCutRow = document.getElementById('btnAddCutRow');
+    const btnExportCutCsv = document.getElementById('btnExportCutCsv');
+    const cutKpiGrid = document.getElementById('cutKpiGrid');
+    const cutTableBody = document.getElementById('cutTableBody');
+    const cutEmptyNotice = document.getElementById('cutEmptyNotice');
+
+    let cutRows = [];
+
+    function calcCutLength(row) {
+      const route = parseFloat(row.routeLength) || 0;
+      const fat = parseInt(row.fatCount, 10) || 0;
+      const slack = parseFloat(row.slackLength) || 0;
+      const factor = parseFloat(row.factor) || 1;
+      return (route + (fat + 1) * slack) * factor;
+    }
+
+    function escHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function detectCableType(name) {
+      return /\b(SUBFEEDER|SF|MF|HF|FEEDER)\b/i.test(name || '') ? 'feeder' : 'distribusi';
+    }
+
+    function calcFeederSlackCount(routeLength) {
+      const len = parseFloat(routeLength) || 0;
+      return len > 0 ? Math.ceil(len / 400) : 0;
+    }
+
+    function populateCutRowsFromOpname(opname) {
+      const defaultSlack = parseFloat(globalSlackEl.value) || 20;
+      const defaultFactor = parseFloat(globalFactorEl.value) || 1.03;
+      cutRows = (opname.cables || []).map((c) => {
+        const fallbackFat = (opname.rows || []).filter(
+          (r) => r.line === c.line && r.remark && r.remark.includes('FAT ')
+        ).length;
+        const kmzFat = c.fatCount ?? fallbackFat;
+        const routeLen = c.length2D ?? c.nominalLength ?? 0;
+        const cableType = c.cableKind || detectCableType(c.name);
+        const fatVal = cableType === 'feeder' ? calcFeederSlackCount(routeLen) : kmzFat;
+        return {
+          line: c.line || 'MAIN',
+          name: c.name || '-',
+          cableType,
+          routeLength: routeLen,
+          fatCount: fatVal,
+          kmzRouteLength: routeLen,
+          kmzFatCount: kmzFat,
+          fromKmz: true,
+          slackLength: defaultSlack,
+          factor: defaultFactor,
+        };
+      });
+      btnResetCutKmz.disabled = cutRows.length === 0;
+      renderCutTable();
+    }
+
+    function renderCutTable() {
+      cutEmptyNotice.style.display = cutRows.length === 0 ? 'block' : 'none';
+
+      let totalRoute = 0;
+      let totalFat = 0;
+      let totalCut = 0;
+
+      cutTableBody.innerHTML = cutRows
+        .map((r, idx) => {
+          const cutLen = calcCutLength(r);
+          totalRoute += parseFloat(r.routeLength) || 0;
+          totalFat += parseInt(r.fatCount, 10) || 0;
+          totalCut += cutLen;
+          const fatHint =
+            r.cableType === 'feeder'
+              ? `<div style="font-size:0.72rem; color:var(--primary); margin-top:2px;">⌈Rute/400⌉</div>`
+              : r.fromKmz
+              ? `<div style="font-size:0.72rem; color:var(--muted); margin-top:2px;">KMZ: ${r.kmzFatCount}</div>`
+              : '';
+
+          return `
+          <tr>
+            <td>${idx + 1}</td>
+            <td><input type="text" class="inline-input text-left" style="width:90px;" value="${escHtml(r.line)}" data-idx="${idx}" data-field="line" /></td>
+            <td><input type="text" class="inline-input text-left" style="width:190px;" value="${escHtml(r.name)}" data-idx="${idx}" data-field="name" /></td>
+            <td>
+              <select class="inline-input text-left" style="width:140px;" data-idx="${idx}" data-field="cableType">
+                <option value="distribusi" ${r.cableType === 'distribusi' ? 'selected' : ''}>Distribusi (FAT)</option>
+                <option value="feeder" ${r.cableType === 'feeder' ? 'selected' : ''}>Feeder / SF / MF / HF</option>
+              </select>
+            </td>
+            <td class="num"><input type="number" class="inline-input" step="0.1" min="0" value="${r.routeLength}" data-idx="${idx}" data-field="routeLength" /></td>
+            <td class="num"><input type="number" class="inline-input" step="1" min="0" value="${r.fatCount}" data-idx="${idx}" data-field="fatCount" data-fat-input="${idx}" />${fatHint}</td>
+            <td class="num"><input type="number" class="inline-input" step="1" min="0" value="${r.slackLength}" data-idx="${idx}" data-field="slackLength" /></td>
+            <td class="num"><input type="number" class="inline-input" step="0.01" min="0.1" value="${r.factor}" data-idx="${idx}" data-field="factor" /></td>
+            <td class="num" style="font-weight:700; color:var(--primary); font-size:0.95rem;" data-cut-result="${idx}">${cutLen.toFixed(2)} m <span style="color:var(--muted); font-weight:400; font-size:0.78rem;">(${Math.ceil(cutLen)} m)</span></td>
+            <td class="num"><button class="btn-danger-sm" data-del-cut="${idx}">Hapus</button></td>
+          </tr>`;
+        })
+        .join('');
+
+      renderCutKpis(totalRoute, totalFat, totalCut);
+    }
+
+    function renderCutKpis(totalRoute, totalFat, totalCut) {
+      const kpis = [
+        { label: 'Jumlah Line', value: cutRows.length, sub: 'segmen kabel' },
+        { label: 'Total Panjang Rute', value: `${totalRoute.toFixed(1)} m`, sub: 'dari KMZ / manual' },
+        { label: 'Total FAT / Slack', value: totalFat, sub: 'titik FAT / slack' },
+        { label: 'Total Kabel Potong', value: `${totalCut.toFixed(2)} m`, sub: `Pembulatan atas: ${Math.ceil(totalCut)} m` },
+      ];
+      cutKpiGrid.innerHTML = kpis
+        .map(
+          (k) => `<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>`
+        )
+        .join('');
+    }
+
+    function refreshCutRowDisplay(idx) {
+      const r = cutRows[idx];
+      if (!r) return;
+      const cutLen = calcCutLength(r);
+      const resEl = cutTableBody.querySelector(`[data-cut-result="${idx}"]`);
+      if (resEl) {
+        resEl.innerHTML = `${cutLen.toFixed(2)} m <span style="color:var(--muted); font-weight:400; font-size:0.78rem;">(${Math.ceil(cutLen)} m)</span>`;
+      }
+      let totalRoute = 0, totalFat = 0, totalCut = 0;
+      for (const row of cutRows) {
+        totalRoute += parseFloat(row.routeLength) || 0;
+        totalFat += parseInt(row.fatCount, 10) || 0;
+        totalCut += calcCutLength(row);
+      }
+      renderCutKpis(totalRoute, totalFat, totalCut);
+    }
+
+    cutTableBody.addEventListener('input', (e) => {
+      const idx = e.target.dataset.idx;
+      const field = e.target.dataset.field;
+      if (idx === undefined || !field) return;
+      const i = Number(idx);
+      cutRows[i][field] = e.target.value;
+
+      if (field === 'name') {
+        const detected = detectCableType(e.target.value);
+        if (detected !== cutRows[i].cableType) {
+          cutRows[i].cableType = detected;
+          cutRows[i].fatCount =
+            detected === 'feeder'
+              ? calcFeederSlackCount(cutRows[i].routeLength)
+              : (cutRows[i].kmzFatCount ?? 0);
+          const selEl = cutTableBody.querySelector(`select[data-idx="${i}"][data-field="cableType"]`);
+          if (selEl) selEl.value = detected;
+          const fatEl = cutTableBody.querySelector(`[data-fat-input="${i}"]`);
+          if (fatEl) fatEl.value = cutRows[i].fatCount;
+        }
+      } else if (field === 'routeLength' && cutRows[i].cableType === 'feeder') {
+        cutRows[i].fatCount = calcFeederSlackCount(e.target.value);
+        const fatEl = cutTableBody.querySelector(`[data-fat-input="${i}"]`);
+        if (fatEl) fatEl.value = cutRows[i].fatCount;
+      }
+
+      refreshCutRowDisplay(i);
+    });
+
+    cutTableBody.addEventListener('change', (e) => {
+      const idx = e.target.dataset.idx;
+      const field = e.target.dataset.field;
+      if (idx === undefined || field !== 'cableType') return;
+      const i = Number(idx);
+      cutRows[i].cableType = e.target.value;
+      cutRows[i].fatCount =
+        cutRows[i].cableType === 'feeder'
+          ? calcFeederSlackCount(cutRows[i].routeLength)
+          : (cutRows[i].kmzFatCount ?? 0);
+      renderCutTable();
+    });
+
+    cutTableBody.addEventListener('click', (e) => {
+      const delIdx = e.target.dataset.delCut;
+      if (delIdx !== undefined) {
+        cutRows.splice(Number(delIdx), 1);
+        renderCutTable();
+      }
+    });
+
+    btnApplyGlobalCut.addEventListener('click', () => {
+      const slack = parseFloat(globalSlackEl.value) || 0;
+      const factor = parseFloat(globalFactorEl.value) || 1.03;
+      cutRows = cutRows.map((r) => ({ ...r, slackLength: slack, factor }));
+      renderCutTable();
+    });
+
+    btnResetCutKmz.addEventListener('click', () => {
+      if (currentOpname) {
+        populateCutRowsFromOpname(currentOpname);
+      }
+    });
+
+    btnAddCutRow.addEventListener('click', () => {
+      cutRows.push({
+        line: `LINE ${String.fromCharCode(65 + cutRows.length)}`,
+        name: 'Kabel Manual',
+        cableType: 'distribusi',
+        routeLength: 0,
+        fatCount: 0,
+        kmzFatCount: 0,
+        fromKmz: false,
+        slackLength: parseFloat(globalSlackEl.value) || 20,
+        factor: parseFloat(globalFactorEl.value) || 1.03,
+      });
+      renderCutTable();
+    });
+
+    btnExportCutCsv.addEventListener('click', () => {
+      if (cutRows.length === 0) return;
+      const header = ['NO', 'LINE', 'NAMA KABEL', 'TIPE KABEL', 'PANJANG RUTE (m)', 'JUMLAH FAT/SLACK', 'PANJANG SLACK (m)', 'FAKTOR', 'KABEL POTONG (m)', 'PEMBULATAN ATAS (m)'];
+      const lines = [header.join(',')];
+      cutRows.forEach((r, i) => {
+        const cutLen = calcCutLength(r);
+        lines.push([
+          i + 1,
+          `"${(r.line || '').replace(/"/g, '""')}"`,
+          `"${(r.name || '').replace(/"/g, '""')}"`,
+          r.cableType === 'feeder' ? 'Feeder/SF/MF/HF' : 'Distribusi',
+          r.routeLength,
+          r.fatCount,
+          r.slackLength,
+          r.factor,
+          cutLen.toFixed(2),
+          Math.ceil(cutLen),
+        ].join(','));
+      });
+      const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Kabel_Potongan.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    renderCutTable();
+
+    // --- Edit KMZ (Jalur MF) ---
+    const baseKmzDropzone = document.getElementById('baseKmzDropzone');
+    const baseKmzInput = document.getElementById('baseKmzInput');
+    const baseKmzName = document.getElementById('baseKmzName');
+    const mfKmzDropzone = document.getElementById('mfKmzDropzone');
+    const mfKmzInput = document.getElementById('mfKmzInput');
+    const mfKmzName = document.getElementById('mfKmzName');
+    const btnUseTab1Kmz = document.getElementById('btnUseTab1Kmz');
+    const btnMfPreview = document.getElementById('btnMfPreview');
+    const btnMfExport = document.getElementById('btnMfExport');
+    const mfResultSection = document.getElementById('mfResultSection');
+    const mfKpiGrid = document.getElementById('mfKpiGrid');
+    const mfTableBody = document.getElementById('mfTableBody');
+
+    let baseKmzFile = null;
+    let mfKmzFile = null;
+
+    function updateMfButtons() {
+      const ready = Boolean(baseKmzFile && mfKmzFile);
+      btnMfPreview.disabled = !ready;
+      btnMfExport.disabled = !ready;
+    }
+
+    function setBaseKmz(file) {
+      if (!file) return;
+      baseKmzFile = file;
+      baseKmzName.textContent = `Terpilih: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      updateMfButtons();
+      hideAlert();
+    }
+
+    function setMfKmz(file) {
+      if (!file) return;
+      mfKmzFile = file;
+      mfKmzName.textContent = `Terpilih: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      updateMfButtons();
+      hideAlert();
+    }
+
+    function wireDropzone(zone, input, setter) {
+      zone.addEventListener('click', () => input.click());
+      input.addEventListener('change', (e) => setter(e.target.files[0]));
+      zone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        zone.classList.add('dragover');
+      });
+      zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+      zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) setter(e.dataTransfer.files[0]);
+      });
+    }
+
+    wireDropzone(baseKmzDropzone, baseKmzInput, setBaseKmz);
+    wireDropzone(mfKmzDropzone, mfKmzInput, setMfKmz);
+
+    btnUseTab1Kmz.addEventListener('click', () => {
+      if (selectedFile) setBaseKmz(selectedFile);
+    });
+
+    function buildMfFormData() {
+      const fd = new FormData();
+      fd.append('baseKmz', baseKmzFile);
+      fd.append('mfKmz', mfKmzFile);
+      fd.append('toleranceMeters', document.getElementById('mfTolerance').value);
+      fd.append('overrideColor', document.getElementById('mfOverrideColor').checked);
+      fd.append('poleColor', document.getElementById('mfPoleColor').value);
+      return fd;
+    }
+
+    btnMfPreview.addEventListener('click', async () => {
+      if (!baseKmzFile || !mfKmzFile) return;
+      hideAlert();
+      btnMfPreview.disabled = true;
+      btnMfPreview.textContent = 'Memproses...';
+      try {
+        const res = await fetch('/api/mf-preview', { method: 'POST', body: buildMfFormData() });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal memproses edit KMZ');
+        renderMfResult(data.summary, data.changes);
+      } catch (err) {
+        showAlert(err.message, 'error');
+      } finally {
+        btnMfPreview.disabled = false;
+        btnMfPreview.textContent = 'Preview Perubahan';
+      }
+    });
+
+    btnMfExport.addEventListener('click', async () => {
+      if (!baseKmzFile || !mfKmzFile) return;
+      hideAlert();
+      btnMfExport.disabled = true;
+      btnMfExport.textContent = 'Menyiapkan KMZ...';
+      try {
+        const res = await fetch('/api/mf-export', { method: 'POST', body: buildMfFormData() });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Gagal mengekspor KMZ');
+        }
+        const blob = await res.blob();
+        const disp = res.headers.get('Content-Disposition') || '';
+        const match = disp.match(/filename="([^"]+)"/);
+        const filename = match ? match[1] : 'Edited_MF.kmz';
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        showAlert(err.message, 'error');
+      } finally {
+        btnMfExport.disabled = false;
+        btnMfExport.textContent = 'Download KMZ Hasil Edit';
+      }
+    });
+
+    function renderMfResult(summary, changes) {
+      mfResultSection.classList.remove('hidden');
+      const kpis = [
+        { label: 'Jalur MF', value: summary.mfLineCount, sub: 'LineString MF' },
+        { label: 'Pole 2.5" & 3"', value: summary.totalCandidatePoles, sub: 'total kandidat' },
+        { label: 'Diubah ke 4"', value: summary.changedCount, sub: `toleransi ≤ ${summary.toleranceMeters} m` },
+        { label: 'Tetap', value: summary.unchangedCount, sub: 'tidak dilalui MF' },
+      ];
+      mfKpiGrid.innerHTML = kpis
+        .map(
+          (k) => `<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>`
+        )
+        .join('');
+
+      if (changes.length === 0) {
+        mfTableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--muted);">Tidak ada pole 2.5" atau 3" yang berada dalam toleransi jarak jalur MF.</td></tr>';
+        return;
+      }
+
+      mfTableBody.innerHTML = changes
+        .map(
+          (c, idx) => `
+          <tr>
+            <td>${idx + 1}</td>
+            <td><strong>${c.poleId}</strong></td>
+            <td><span class="pill-line">${c.line}</span></td>
+            <td>${c.fromFolder}</td>
+            <td style="color:var(--success); font-weight:600;">${c.toFolder}</td>
+            <td class="num">${c.distanceMeters} m</td>
+          </tr>`
+        )
+        .join('');
+    }
+
+    // --- Bersihkan KMZ (Filter Item) ---
+    const cleanKmzDropzone = document.getElementById('cleanKmzDropzone');
+    const cleanKmzInput = document.getElementById('cleanKmzInput');
+    const cleanKmzName = document.getElementById('cleanKmzName');
+    const btnUseTab1CleanKmz = document.getElementById('btnUseTab1CleanKmz');
+    const btnCleanPreview = document.getElementById('btnCleanPreview');
+    const btnCleanExport = document.getElementById('btnCleanExport');
+    const cleanResultSection = document.getElementById('cleanResultSection');
+    const cleanKpiGrid = document.getElementById('cleanKpiGrid');
+    const cleanTableBody = document.getElementById('cleanTableBody');
+
+    let cleanKmzFile = null;
+
+    function setCleanKmz(file) {
+      if (!file) return;
+      cleanKmzFile = file;
+      cleanKmzName.textContent = `Terpilih: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      btnCleanPreview.disabled = false;
+      btnCleanExport.disabled = false;
+      hideAlert();
+    }
+
+    wireDropzone(cleanKmzDropzone, cleanKmzInput, setCleanKmz);
+    btnUseTab1CleanKmz.addEventListener('click', () => {
+      if (selectedFile) setCleanKmz(selectedFile);
+    });
+
+    function getCleanTargets() {
+      return Array.from(document.querySelectorAll('.clean-target:checked')).map((el) => el.value);
+    }
+
+    function buildCleanFormData() {
+      const fd = new FormData();
+      fd.append('kmzFile', cleanKmzFile);
+      fd.append('targets', JSON.stringify(getCleanTargets()));
+      fd.append('mode', document.getElementById('cleanMode').value);
+      fd.append('outputFormat', document.getElementById('cleanFormat').value);
+      return fd;
+    }
+
+    btnCleanPreview.addEventListener('click', async () => {
+      if (!cleanKmzFile) return;
+      const targets = getCleanTargets();
+      if (targets.length === 0) {
+        showAlert('Pilih minimal 1 kategori folder yang ingin dihapus/disembunyikan.', 'error');
+        return;
+      }
+      hideAlert();
+      btnCleanPreview.disabled = true;
+      btnCleanPreview.textContent = 'Memproses...';
+      try {
+        const res = await fetch('/api/clean-preview', { method: 'POST', body: buildCleanFormData() });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal memproses pembersihan KMZ');
+        renderCleanResult(data.summary, data.breakdown);
+      } catch (err) {
+        showAlert(err.message, 'error');
+      } finally {
+        btnCleanPreview.disabled = false;
+        btnCleanPreview.textContent = 'Preview Pengurangan';
+      }
+    });
+
+    btnCleanExport.addEventListener('click', async () => {
+      if (!cleanKmzFile) return;
+      const targets = getCleanTargets();
+      if (targets.length === 0) {
+        showAlert('Pilih minimal 1 kategori folder yang ingin dihapus/disembunyikan.', 'error');
+        return;
+      }
+      hideAlert();
+      btnCleanExport.disabled = true;
+      btnCleanExport.textContent = 'Menyiapkan File...';
+      try {
+        const res = await fetch('/api/clean-export', { method: 'POST', body: buildCleanFormData() });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Gagal mengekspor file');
+        }
+        const blob = await res.blob();
+        const disp = res.headers.get('Content-Disposition') || '';
+        const match = disp.match(/filename="([^"]+)"/);
+        const filename = match ? match[1] : 'Cleaned.kmz';
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        showAlert(err.message, 'error');
+      } finally {
+        btnCleanExport.disabled = false;
+        btnCleanExport.textContent = 'Download Hasil';
+      }
+    });
+
+    function renderCleanResult(summary, breakdown) {
+      cleanResultSection.classList.remove('hidden');
+      const origKB = (summary.originalSizeBytes / 1024).toFixed(1);
+      const outKB = (summary.outputSizeBytes / 1024).toFixed(1);
+      const savedPct = summary.originalSizeBytes > 0
+        ? Math.round((1 - summary.outputSizeBytes / summary.originalSizeBytes) * 100)
+        : 0;
+
+      const kpis = [
+        { label: 'Folder Diproses', value: summary.totalFoldersAffected, sub: summary.mode === 'hide' ? 'disembunyikan' : 'dihapus' },
+        { label: 'Placemark Diproses', value: summary.totalPlacemarksAffected, sub: 'item tidak ditampilkan' },
+        { label: 'Ukuran Awal', value: `${origKB} KB`, sub: 'file sumber' },
+        { label: 'Ukuran Hasil', value: `${outKB} KB`, sub: `format .${summary.outputFormat} (${savedPct >= 0 ? '-' + savedPct : '+' + Math.abs(savedPct)}%)` },
+      ];
+      cleanKpiGrid.innerHTML = kpis
+        .map(
+          (k) => `<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>`
+        )
+        .join('');
+
+      const statusLabel = summary.mode === 'hide' ? 'Disembunyikan (visibility=0)' : 'Dihapus Permanen';
+      cleanTableBody.innerHTML = breakdown
+        .map(
+          (b, idx) => `
+          <tr>
+            <td>${idx + 1}</td>
+            <td><strong>${b.category}</strong></td>
+            <td class="num">${b.foldersAffected}</td>
+            <td class="num">${b.placemarksAffected}</td>
+            <td style="color:${b.foldersAffected > 0 ? 'var(--success)' : 'var(--muted)'};">${b.foldersAffected > 0 ? statusLabel : 'Tidak ditemukan'}</td>
+          </tr>`
+        )
+        .join('');
+    }
+
+    // --- Batch Summary KMZ -> CSV ---
+    const batchDropzone = document.getElementById('batchDropzone');
+    const batchKmzInput = document.getElementById('batchKmzInput');
+    const batchFileNames = document.getElementById('batchFileNames');
+    const btnBatchPreview = document.getElementById('btnBatchPreview');
+    const btnBatchExport = document.getElementById('btnBatchExport');
+    const batchResultSection = document.getElementById('batchResultSection');
+    const batchKpiGrid = document.getElementById('batchKpiGrid');
+    const batchTableBody = document.getElementById('batchTableBody');
+
+    let batchFiles = [];
+
+    function setBatchFiles(fileList) {
+      const arr = Array.from(fileList || []).filter((f) => /\.(kmz|kml)$/i.test(f.name));
+      if (arr.length === 0) return;
+      batchFiles = arr;
+      const previewNames = arr.slice(0, 3).map((f) => f.name).join(', ');
+      const extra = arr.length > 3 ? ` +${arr.length - 3} lainnya` : '';
+      batchFileNames.textContent = `Terpilih ${arr.length} file: ${previewNames}${extra}`;
+      btnBatchPreview.disabled = false;
+      btnBatchExport.disabled = false;
+      hideAlert();
+    }
+
+    batchDropzone.addEventListener('click', () => batchKmzInput.click());
+    batchKmzInput.addEventListener('change', (e) => setBatchFiles(e.target.files));
+    batchDropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      batchDropzone.classList.add('dragover');
+    });
+    batchDropzone.addEventListener('dragleave', () => batchDropzone.classList.remove('dragover'));
+    batchDropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      batchDropzone.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) setBatchFiles(e.dataTransfer.files);
+    });
+
+    function buildBatchFormData() {
+      const fd = new FormData();
+      for (const f of batchFiles) {
+        fd.append('kmzFiles', f);
+      }
+      return fd;
+    }
+
+    btnBatchPreview.addEventListener('click', async () => {
+      if (batchFiles.length === 0) return;
+      hideAlert();
+      btnBatchPreview.disabled = true;
+      btnBatchPreview.textContent = 'Memproses...';
+      try {
+        const res = await fetch('/api/batch-preview', { method: 'POST', body: buildBatchFormData() });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal memproses batch KMZ');
+        renderBatchResult(data.clusterSummaries, data.rows);
+      } catch (err) {
+        showAlert(err.message, 'error');
+      } finally {
+        btnBatchPreview.disabled = false;
+        btnBatchPreview.textContent = 'Preview Summary';
+      }
+    });
+
+    btnBatchExport.addEventListener('click', async () => {
+      if (batchFiles.length === 0) return;
+      hideAlert();
+      btnBatchExport.disabled = true;
+      btnBatchExport.textContent = 'Menyiapkan CSV...';
+      try {
+        const res = await fetch('/api/batch-export', { method: 'POST', body: buildBatchFormData() });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Gagal mengekspor CSV');
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Summary_Batch_KMZ.csv';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        showAlert(err.message, 'error');
+      } finally {
+        btnBatchExport.disabled = false;
+        btnBatchExport.textContent = 'Download Summary (.csv)';
+      }
+    });
+
+    function renderBatchResult(clusters, rows) {
+      batchResultSection.classList.remove('hidden');
+      const totPoles = clusters.reduce((s, c) => s + c.totalPoles, 0);
+      const totFdt = clusters.reduce((s, c) => s + c.fdtCount, 0);
+      const totLines = clusters.reduce((s, c) => s + c.totalLines, 0);
+      const totFats = clusters.reduce((s, c) => s + c.totalFats, 0);
+
+      const kpis = [
+        { label: 'Total Cluster / File', value: clusters.length, sub: 'file KMZ/KML' },
+        { label: 'Total Pole', value: totPoles, sub: 'akumulasi semua cluster' },
+        { label: 'Total FDT', value: totFdt, sub: 'titik FDT' },
+        { label: 'Total Line', value: totLines, sub: 'jalur kabel' },
+        { label: 'Total FAT', value: totFats, sub: 'titik FAT' },
+      ];
+      batchKpiGrid.innerHTML = kpis
+        .map(
+          (k) => `<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>`
+        )
+        .join('');
+
+      batchTableBody.innerHTML = rows
+        .map(
+          (r, idx) => `
+          <tr>
+            <td>${idx + 1}</td>
+            <td><strong>${r.clusterName}</strong></td>
+            <td class="num">${r.totalPoles}</td>
+            <td class="num">${r.newPoles}</td>
+            <td class="num">${r.existingPoles}</td>
+            <td class="num">${r.fdtCount}</td>
+            <td>${r.fdtId}</td>
+            <td class="num">${r.linesInFdt}</td>
+            <td><span class="pill-line">${r.line}</span></td>
+            <td>${r.cableType}</td>
+            <td class="num">${r.length2D}</td>
+            <td class="num">${r.fatCount}</td>
+          </tr>`
+        )
+        .join('');
+    }
+  </script>
+</body>
+</html>
