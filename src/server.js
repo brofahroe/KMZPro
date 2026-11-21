@@ -332,6 +332,10 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`KMZPro Opname App berjalan di http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`KMZPro Opname App berjalan di http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
