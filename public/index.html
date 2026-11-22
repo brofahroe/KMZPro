@@ -435,10 +435,10 @@
                 <th>LINE</th>
                 <th>NAMA KABEL (KMZ)</th>
                 <th>TIPE KABEL</th>
-                <th class="num">PANJANG RUTE (m)</th>
-                <th class="num">JUMLAH FAT / SLACK</th>
-                <th class="num">PANJANG SLACK (m)</th>
-                <th class="num">FAKTOR (×)</th>
+                <th class="num" style="white-space:normal; width:82px; line-height:1.2;">PANJANG RUTE (m)</th>
+                <th class="num" style="white-space:normal; width:74px; line-height:1.2;">JUMLAH FAT / SLACK</th>
+                <th class="num" style="white-space:normal; width:74px; line-height:1.2;">PANJANG SLACK (m)</th>
+                <th class="num" style="white-space:normal; width:64px; line-height:1.2;">FAKTOR (×)</th>
                 <th class="num">KABEL POTONG (m)</th>
                 <th class="num">AKSI</th>
               </tr>
@@ -951,18 +951,18 @@
           return `
           <tr>
             <td>${idx + 1}</td>
-            <td><input type="text" class="inline-input text-left" style="width:90px;" value="${escHtml(r.line)}" data-idx="${idx}" data-field="line" /></td>
-            <td><input type="text" class="inline-input text-left" style="width:190px;" value="${escHtml(r.name)}" data-idx="${idx}" data-field="name" /></td>
+            <td><input type="text" class="inline-input text-left" style="width:165px;" value="${escHtml(r.line)}" data-idx="${idx}" data-field="line" /></td>
+            <td><input type="text" class="inline-input text-left" style="width:185px;" value="${escHtml(r.name)}" data-idx="${idx}" data-field="name" /></td>
             <td>
-              <select class="inline-input text-left" style="width:140px;" data-idx="${idx}" data-field="cableType">
+              <select class="inline-input text-left" style="width:130px;" data-idx="${idx}" data-field="cableType">
                 <option value="distribusi" ${r.cableType === 'distribusi' ? 'selected' : ''}>Distribusi (FAT)</option>
                 <option value="feeder" ${r.cableType === 'feeder' ? 'selected' : ''}>Feeder / SF / MF / HF</option>
               </select>
             </td>
-            <td class="num"><input type="number" class="inline-input" step="0.1" min="0" value="${r.routeLength}" data-idx="${idx}" data-field="routeLength" /></td>
-            <td class="num"><input type="number" class="inline-input" step="1" min="0" value="${r.fatCount}" data-idx="${idx}" data-field="fatCount" data-fat-input="${idx}" />${fatHint}</td>
-            <td class="num"><input type="number" class="inline-input" step="1" min="0" value="${r.slackLength}" data-idx="${idx}" data-field="slackLength" /></td>
-            <td class="num"><input type="number" class="inline-input" step="0.01" min="0.1" value="${r.factor}" data-idx="${idx}" data-field="factor" /></td>
+            <td class="num"><input type="number" class="inline-input" style="width:76px;" step="0.1" min="0" value="${r.routeLength}" data-idx="${idx}" data-field="routeLength" /></td>
+            <td class="num"><input type="number" class="inline-input" style="width:58px;" step="1" min="0" value="${r.fatCount}" data-idx="${idx}" data-field="fatCount" data-fat-input="${idx}" />${fatHint}</td>
+            <td class="num"><input type="number" class="inline-input" style="width:58px;" step="1" min="0" value="${r.slackLength}" data-idx="${idx}" data-field="slackLength" /></td>
+            <td class="num"><input type="number" class="inline-input" style="width:56px;" step="0.01" min="0.1" value="${r.factor}" data-idx="${idx}" data-field="factor" /></td>
             <td class="num" style="font-weight:700; color:var(--primary); font-size:0.95rem;" data-cut-result="${idx}">${cutLen.toFixed(2)} m <span style="color:var(--muted); font-weight:400; font-size:0.78rem;">(${Math.ceil(cutLen)} m)</span></td>
             <td class="num"><button class="btn-danger-sm" data-del-cut="${idx}">Hapus</button></td>
           </tr>`;
