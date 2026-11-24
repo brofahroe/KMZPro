@@ -61,26 +61,137 @@ function slicePolyline(pts, chainages, startCh, endCh) {
   return out;
 }
 
-function calcEffectiveLength(routeLen, slackLen, slackInterval, sparePercent) {
-  const slackCount = Math.floor(routeLen / slackInterval) + 1;
-  const totalSlackMeters = slackCount * slackLen;
-  const factor = 1 + sparePercent / 100;
-  const effectiveLength = (routeLen + totalSlackMeters) * factor;
-  return { slackCount, totalSlackMeters, factor, effectiveLength };
+function is9mPole(pole) {
+  return /9m/i.test(pole.label || '') || /\b9[-\s]?4\b/i.test(pole.folder || '');
 }
 
 /**
- * Find maximum route length <= maxRouteCap such that effectiveLength <= maxHasbelMeters.
+ * Compute all Slack points (400m interval + 9m crossing poles) and effective length for [startCh, endCh].
  */
-function solveMaxRouteForHasbel(maxRouteCap, maxHasbelMeters, slackLen, slackInterval, sparePercent) {
-  const full = calcEffectiveLength(maxRouteCap, slackLen, slackInterval, sparePercent);
-  if (full.effectiveLength <= maxHasbelMeters) return maxRouteCap;
+function computeSegmentSlacks(
+  pts,
+  chainages,
+  polesOnCable,
+  startCh,
+  endCh,
+  slackLen,
+  slackInterval,
+  sparePercent,
+  snapToPole
+) {
+  const routeLen = Math.max(0, endCh - startCh);
+  const num400 = Math.floor(routeLen / slackInterval);
+  const usedPoleNames = new Set();
+  const points = [];
 
-  let lo = 0;
-  let hi = maxRouteCap;
+  for (let k = 1; k <= num400; k++) {
+    const targetCh = startCh + k * slackInterval;
+    let slackCoord = interpolateAtChainage(pts, chainages, targetCh);
+    let slackPoleName = '';
+    let actualCh = targetCh;
+
+    if (snapToPole && polesOnCable.length > 0) {
+      let bestPole = null;
+      let bestDiff = 1e9;
+      for (const p of polesOnCable) {
+        if (p.chainage > startCh + 1.0 && p.chainage < endCh - 1.0) {
+          const diff = Math.abs(p.chainage - targetCh);
+          if (diff < bestDiff) {
+            bestDiff = diff;
+            bestPole = p;
+          }
+        }
+      }
+      if (bestPole) {
+        slackCoord = bestPole.coord;
+        slackPoleName = bestPole.name;
+        actualCh = bestPole.chainage;
+        usedPoleNames.add(bestPole.name);
+      }
+    }
+
+    points.push({
+      label: slackPoleName || `CH ${Math.round(actualCh)}m`,
+      poleName: slackPoleName || '-',
+      chainage: Math.round(actualCh * 10) / 10,
+      targetChainage: Math.round(targetCh * 10) / 10,
+      reason: `Interval ${slackInterval}m`,
+      is9m: false,
+      coord: slackCoord,
+    });
+  }
+
+  // Add Slack on every 9m pole (crossing jalan raya / jembatan) not already covered
+  for (const p of polesOnCable) {
+    if (!p.is9m) continue;
+    if (p.chainage > startCh + 1.0 && p.chainage < endCh - 1.0 && !usedPoleNames.has(p.name)) {
+      usedPoleNames.add(p.name);
+      points.push({
+        label: `${p.name} [9m]`,
+        poleName: p.name,
+        chainage: Math.round(p.chainage * 10) / 10,
+        targetChainage: Math.round(p.chainage * 10) / 10,
+        reason: 'Pole 9m (Crossing)',
+        is9m: true,
+        coord: p.coord,
+      });
+    }
+  }
+
+  points.sort((a, b) => a.chainage - b.chainage);
+
+  // +1 for end/JC slack
+  const slackCount = points.length + 1;
+  const totalSlackMeters = slackCount * slackLen;
+  const factor = 1 + sparePercent / 100;
+  const effectiveLength = (routeLen + totalSlackMeters) * factor;
+
+  return { routeLen, slackCount, totalSlackMeters, factor, effectiveLength, points };
+}
+
+/**
+ * Find maximum endCh in [startCh, totalLen] such that effectiveLength <= maxHasbelMeters.
+ */
+function solveEndChForHasbel(
+  pts,
+  chainages,
+  polesOnCable,
+  startCh,
+  totalLen,
+  maxHasbelMeters,
+  slackLen,
+  slackInterval,
+  sparePercent,
+  snapToPole
+) {
+  const full = computeSegmentSlacks(
+    pts,
+    chainages,
+    polesOnCable,
+    startCh,
+    totalLen,
+    slackLen,
+    slackInterval,
+    sparePercent,
+    snapToPole
+  );
+  if (full.effectiveLength <= maxHasbelMeters) return totalLen;
+
+  let lo = startCh;
+  let hi = totalLen;
   for (let iter = 0; iter < 32; iter++) {
     const mid = (lo + hi) / 2;
-    const res = calcEffectiveLength(mid, slackLen, slackInterval, sparePercent);
+    const res = computeSegmentSlacks(
+      pts,
+      chainages,
+      polesOnCable,
+      startCh,
+      mid,
+      slackLen,
+      slackInterval,
+      sparePercent,
+      snapToPole
+    );
     if (res.effectiveLength <= maxHasbelMeters) {
       lo = mid;
     } else {
@@ -140,11 +251,17 @@ async function splitKmzLinesByHasbel(buffer, filename = 'input.kmz', options = {
 
     // Project poles onto this cable (within 10m)
     const polesOnCable = [];
-    if (snapToPole && kmzData.poles.length > 0) {
+    if (kmzData.poles.length > 0) {
       for (const p of kmzData.poles) {
         const pr = pointToLineProj(p.coord, cab.pts);
         if (pr.dist <= 10.0) {
-          polesOnCable.push({ name: p.name, chainage: pr.chainage, coord: p.coord });
+          polesOnCable.push({
+            name: p.name,
+            label: p.label,
+            is9m: is9mPole(p),
+            chainage: pr.chainage,
+            coord: p.coord,
+          });
         }
       }
       polesOnCable.sort((a, b) => a.chainage - b.chainage);
@@ -157,15 +274,19 @@ async function splitKmzLinesByHasbel(buffer, filename = 'input.kmz', options = {
       cableHasbelNum++;
       globalHasbelIdx++;
       const remaining = totalLen - startCh;
-      const maxRoute = solveMaxRouteForHasbel(
-        remaining,
+
+      let endCh = solveEndChForHasbel(
+        cab.pts,
+        chainages,
+        polesOnCable,
+        startCh,
+        totalLen,
         maxHasbelMeters,
         slackLengthMeters,
         slackIntervalMeters,
-        sparePercent
+        sparePercent,
+        snapToPole
       );
-
-      let endCh = Math.min(totalLen, startCh + maxRoute);
       let isLastOfCable = endCh >= totalLen - 0.5;
       let snappedPoleName = '';
 
@@ -187,13 +308,18 @@ async function splitKmzLinesByHasbel(buffer, filename = 'input.kmz', options = {
         isLastOfCable = endCh >= totalLen - 0.5;
       }
 
-      const routeLen = endCh - startCh;
-      const calc = calcEffectiveLength(
-        routeLen,
+      const calc = computeSegmentSlacks(
+        cab.pts,
+        chainages,
+        polesOnCable,
+        startCh,
+        endCh,
         slackLengthMeters,
         slackIntervalMeters,
-        sparePercent
+        sparePercent,
+        snapToPole
       );
+      const routeLen = calc.routeLen;
       const segPts = slicePolyline(cab.pts, chainages, startCh, endCh);
       const color = HASBEL_COLORS[(globalHasbelIdx - 1) % HASBEL_COLORS.length];
 
@@ -205,44 +331,18 @@ async function splitKmzLinesByHasbel(buffer, filename = 'input.kmz', options = {
 
       const hasbelName = `${cab.name || cab.line} - Hasbel ${cableHasbelNum}`;
 
-      // Place Slack points every slackIntervalMeters (e.g. 400m) snapped to nearest pole
-      const numIntermediateSlacks = Math.floor(routeLen / slackIntervalMeters);
       const hasbelSlackLabels = [];
-      for (let k = 1; k <= numIntermediateSlacks; k++) {
-        const targetCh = startCh + k * slackIntervalMeters;
-        let slackCoord = interpolateAtChainage(cab.pts, chainages, targetCh);
-        let slackPoleName = '';
-        let actualCh = targetCh;
-
-        if (snapToPole && polesOnCable.length > 0) {
-          let bestPole = null;
-          let bestDiff = 1e9;
-          for (const p of polesOnCable) {
-            if (p.chainage > startCh + 1.0 && p.chainage < endCh - 1.0) {
-              const diff = Math.abs(p.chainage - targetCh);
-              if (diff < bestDiff) {
-                bestDiff = diff;
-                bestPole = p;
-              }
-            }
-          }
-          if (bestPole) {
-            slackCoord = bestPole.coord;
-            slackPoleName = bestPole.name;
-            actualCh = bestPole.chainage;
-          }
-        }
-
-        const label = slackPoleName || `CH ${Math.round(actualCh)}m`;
-        hasbelSlackLabels.push(label);
+      for (const sp of calc.points) {
+        hasbelSlackLabels.push(sp.label);
         slackPoints.push({
-          name: `SLACK-${slackPoints.length + 1} (${label})`,
+          name: `SLACK-${slackPoints.length + 1} (${sp.label})`,
           hasbelName,
-          poleName: slackPoleName || '-',
-          chainage: Math.round(actualCh * 10) / 10,
-          targetChainage: Math.round(targetCh * 10) / 10,
+          poleName: sp.poleName,
+          chainage: sp.chainage,
+          targetChainage: sp.targetChainage,
+          reason: sp.reason,
           slackLengthMeters,
-          coord: slackCoord,
+          coord: sp.coord,
         });
       }
 
@@ -331,7 +431,7 @@ async function splitKmzLinesByHasbel(buffer, filename = 'input.kmz', options = {
       (sp) => `
       <Placemark>
         <name>${escapeXml(sp.name)}</name>
-        <description>${escapeXml(sp.hasbelName)} | Pole: ${escapeXml(sp.poleName)} | Chainage: ${sp.chainage} m (Target: ${sp.targetChainage} m) | Slack: ${sp.slackLengthMeters} m</description>
+        <description>${escapeXml(sp.hasbelName)} | Alasan: ${escapeXml(sp.reason || '')} | Pole: ${escapeXml(sp.poleName)} | Chainage: ${sp.chainage} m | Slack: ${sp.slackLengthMeters} m</description>
         <styleUrl>#slack_style</styleUrl>
         <Point>
           <coordinates>${sp.coord.lon},${sp.coord.lat},0</coordinates>
