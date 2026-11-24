@@ -130,6 +130,7 @@ async function splitKmzLinesByHasbel(buffer, filename = 'input.kmz', options = {
 
   const hasbels = [];
   const jointClosures = [];
+  const slackPoints = [];
   let globalHasbelIdx = 0;
 
   for (const cab of kmzData.cables) {
@@ -204,6 +205,47 @@ async function splitKmzLinesByHasbel(buffer, filename = 'input.kmz', options = {
 
       const hasbelName = `${cab.name || cab.line} - Hasbel ${cableHasbelNum}`;
 
+      // Place Slack points every slackIntervalMeters (e.g. 400m) snapped to nearest pole
+      const numIntermediateSlacks = Math.floor(routeLen / slackIntervalMeters);
+      const hasbelSlackLabels = [];
+      for (let k = 1; k <= numIntermediateSlacks; k++) {
+        const targetCh = startCh + k * slackIntervalMeters;
+        let slackCoord = interpolateAtChainage(cab.pts, chainages, targetCh);
+        let slackPoleName = '';
+        let actualCh = targetCh;
+
+        if (snapToPole && polesOnCable.length > 0) {
+          let bestPole = null;
+          let bestDiff = 1e9;
+          for (const p of polesOnCable) {
+            if (p.chainage > startCh + 1.0 && p.chainage < endCh - 1.0) {
+              const diff = Math.abs(p.chainage - targetCh);
+              if (diff < bestDiff) {
+                bestDiff = diff;
+                bestPole = p;
+              }
+            }
+          }
+          if (bestPole) {
+            slackCoord = bestPole.coord;
+            slackPoleName = bestPole.name;
+            actualCh = bestPole.chainage;
+          }
+        }
+
+        const label = slackPoleName || `CH ${Math.round(actualCh)}m`;
+        hasbelSlackLabels.push(label);
+        slackPoints.push({
+          name: `SLACK-${slackPoints.length + 1} (${label})`,
+          hasbelName,
+          poleName: slackPoleName || '-',
+          chainage: Math.round(actualCh * 10) / 10,
+          targetChainage: Math.round(targetCh * 10) / 10,
+          slackLengthMeters,
+          coord: slackCoord,
+        });
+      }
+
       hasbels.push({
         no: globalHasbelIdx,
         cableName: cab.name || cab.line,
@@ -215,6 +257,7 @@ async function splitKmzLinesByHasbel(buffer, filename = 'input.kmz', options = {
         routeLength: Math.round(routeLen * 10) / 10,
         slackCount: calc.slackCount,
         totalSlackMeters: calc.totalSlackMeters,
+        slackLocations: hasbelSlackLabels.join(', '),
         sparePercent,
         effectiveLength: Math.round(calc.effectiveLength * 100) / 100,
         effectiveLengthCeil: Math.ceil(calc.effectiveLength),
@@ -283,6 +326,20 @@ async function splitKmzLinesByHasbel(buffer, filename = 'input.kmz', options = {
     )
     .join('');
 
+  const slackPlacemarksXml = slackPoints
+    .map(
+      (sp) => `
+      <Placemark>
+        <name>${escapeXml(sp.name)}</name>
+        <description>${escapeXml(sp.hasbelName)} | Pole: ${escapeXml(sp.poleName)} | Chainage: ${sp.chainage} m (Target: ${sp.targetChainage} m) | Slack: ${sp.slackLengthMeters} m</description>
+        <styleUrl>#slack_style</styleUrl>
+        <Point>
+          <coordinates>${sp.coord.lon},${sp.coord.lat},0</coordinates>
+        </Point>
+      </Placemark>`
+    )
+    .join('');
+
   const polePlacemarksXml = kmzData.poles
     .map(
       (p) => `
@@ -309,6 +366,14 @@ async function splitKmzLinesByHasbel(buffer, filename = 'input.kmz', options = {
         <Icon><href>http://maps.google.com/mapfiles/kml/shapes/triangle.png</href></Icon>
       </IconStyle>
     </Style>
+    <Style id="slack_style">
+      <IconStyle>
+        <color>ff00ffff</color>
+        <scale>1.0</scale>
+        <Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_square.png</href></Icon>
+      </IconStyle>
+      <LabelStyle><scale>0.75</scale></LabelStyle>
+    </Style>
     <Style id="pole_ref_style">
       <IconStyle>
         <color>ffffffff</color>
@@ -324,6 +389,10 @@ async function splitKmzLinesByHasbel(buffer, filename = 'input.kmz', options = {
     <Folder>
       <name>JOINT CLOSURE (${jointClosures.length})</name>
       ${jcPlacemarksXml}
+    </Folder>
+    <Folder>
+      <name>SLACK ${slackIntervalMeters}m (${slackPoints.length})</name>
+      ${slackPlacemarksXml}
     </Folder>
     ${
       kmzData.poles.length > 0
@@ -358,6 +427,7 @@ async function splitKmzLinesByHasbel(buffer, filename = 'input.kmz', options = {
     'PEMBULATAN ATAS (m)',
     'DARI POLE',
     'KE POLE / JC',
+    'LOKASI SLACK',
   ];
   const csvLines = [csvHeaders.map(csvEscape).join(',')];
   for (const h of hasbels) {
@@ -377,6 +447,7 @@ async function splitKmzLinesByHasbel(buffer, filename = 'input.kmz', options = {
         h.effectiveLengthCeil,
         h.startPole,
         h.endPole,
+        h.slackLocations || '-',
       ]
         .map(csvEscape)
         .join(',')
@@ -403,6 +474,7 @@ async function splitKmzLinesByHasbel(buffer, filename = 'input.kmz', options = {
     summary,
     hasbels: hasbels.map(({ pts, ...rest }) => rest),
     jointClosures,
+    slackPoints,
     outBuffer,
     csvBuffer,
   };

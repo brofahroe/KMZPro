@@ -362,6 +362,7 @@ app.post('/api/split-preview', upload.single('kmzFile'), async (req, res) => {
       summary: result.summary,
       hasbels: result.hasbels,
       jointClosures: result.jointClosures,
+      slackPoints: result.slackPoints,
     });
   } catch (err) {
     res.status(400).json({ error: err.message || 'Gagal memproses split hasbel.' });
