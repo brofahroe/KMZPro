@@ -297,6 +297,7 @@
       <button class="tab-btn" data-tab="editkmz">Edit KMZ (Jalur MF)</button>
       <button class="tab-btn" data-tab="cleankmz">Bersihkan KMZ (Filter Item)</button>
       <button class="tab-btn" data-tab="batchcsv">Batch Summary → CSV</button>
+      <button class="tab-btn" data-tab="splitkmz">Line Parser (Split Hasbel)</button>
     </div>
 
     <div id="tab-opname" class="tab-panel">
@@ -642,6 +643,91 @@
         </div>
       </div>
     </div>
+
+    <div id="tab-splitkmz" class="tab-panel hidden">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+          <div>
+            <h2 style="font-size:1.15rem;">KML/KMZ Line Parser — Split Hasbel Feeder (3.000 m)</h2>
+            <p style="font-size:0.85rem; color:var(--muted);">Membagi jalur kabel feeder per 1 hasbel (3.000 m) termasuk slack (20 m per 400 m) dan spare (5%), dengan snap titik Joint Closure ke pole terdekat.</p>
+          </div>
+          <button id="btnUseTab1SplitKmz" class="btn-secondary" disabled>Pakai KMZ dari Tab 1</button>
+        </div>
+
+        <div class="upload-grid">
+          <div id="splitKmzDropzone" class="dropzone">
+            <div>📂 Tarik &amp; lepaskan file <strong>.kmz</strong> atau <strong>.kml</strong> di sini</div>
+            <div style="font-size:0.82rem; color:var(--muted);">atau klik untuk memilih file dari komputer</div>
+            <div id="splitKmzName" class="file-name"></div>
+            <input type="file" id="splitKmzInput" accept=".kmz,.kml" class="hidden" />
+          </div>
+
+          <div class="options-box">
+            <h3>Parameter Split Hasbel</h3>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="splitMaxHasbel">Kapasitas 1 Hasbel (m)</label>
+                <input type="number" id="splitMaxHasbel" value="3000" min="100" step="50" />
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="splitSpare">Spare (%)</label>
+                <input type="number" id="splitSpare" value="5" min="0" max="50" step="0.5" />
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="splitSlackLen">Panjang Slack (m)</label>
+                <input type="number" id="splitSlackLen" value="20" min="0" step="1" />
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label for="splitSlackInt">Interval Slack (m)</label>
+                <input type="number" id="splitSlackInt" value="400" min="50" step="50" />
+              </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:10px;">
+              <label class="checkbox-row" style="margin-top:0;">
+                <input type="checkbox" id="splitSnapPole" checked />
+                Snap titik potong (JC) ke Pole terdekat
+              </label>
+              <select id="splitFormat" style="width:130px; padding:6px 8px; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text);">
+                <option value="kmz">Output .KMZ</option>
+                <option value="kml">Output .KML</option>
+              </select>
+            </div>
+
+            <div class="actions">
+              <button id="btnSplitPreview" class="btn-primary" disabled>Proses &amp; Preview Hasbel</button>
+              <button id="btnSplitExportMap" class="btn-success" disabled>Download KMZ/KML</button>
+              <button id="btnSplitExportCsv" class="btn-secondary" disabled>Download CSV</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="splitResultSection" class="hidden">
+        <div id="splitKpiGrid" class="kpi-grid"></div>
+        <div class="card">
+          <div style="font-size:0.9rem; font-weight:600; margin-bottom:10px;">Rincian Segmen per Hasbel</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>NO</th>
+                  <th>WARNA</th>
+                  <th>HASBEL</th>
+                  <th>START–END (m)</th>
+                  <th class="num">RUTE (m)</th>
+                  <th class="num">SLACK</th>
+                  <th class="num">TOTAL (+SPARE)</th>
+                  <th>DARI POLE</th>
+                  <th>KE POLE / JC</th>
+                </tr>
+              </thead>
+              <tbody id="splitTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -692,6 +778,8 @@
       if (btnUseTab1) btnUseTab1.disabled = false;
       const btnUseTab1Clean = document.getElementById('btnUseTab1CleanKmz');
       if (btnUseTab1Clean) btnUseTab1Clean.disabled = false;
+      const btnUseTab1Split = document.getElementById('btnUseTab1SplitKmz');
+      if (btnUseTab1Split) btnUseTab1Split.disabled = false;
       hideAlert();
     }
 
@@ -1530,6 +1618,140 @@
             <td>${r.cableType}</td>
             <td class="num">${r.length2D}</td>
             <td class="num">${r.fatCount}</td>
+          </tr>`
+        )
+        .join('');
+    }
+
+    // --- Line Parser (Split Hasbel) ---
+    const splitKmzDropzone = document.getElementById('splitKmzDropzone');
+    const splitKmzInput = document.getElementById('splitKmzInput');
+    const splitKmzName = document.getElementById('splitKmzName');
+    const btnUseTab1SplitKmz = document.getElementById('btnUseTab1SplitKmz');
+    const btnSplitPreview = document.getElementById('btnSplitPreview');
+    const btnSplitExportMap = document.getElementById('btnSplitExportMap');
+    const btnSplitExportCsv = document.getElementById('btnSplitExportCsv');
+    const splitResultSection = document.getElementById('splitResultSection');
+    const splitKpiGrid = document.getElementById('splitKpiGrid');
+    const splitTableBody = document.getElementById('splitTableBody');
+
+    let splitKmzFile = null;
+
+    function setSplitKmz(file) {
+      if (!file) return;
+      splitKmzFile = file;
+      splitKmzName.textContent = `Terpilih: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      btnSplitPreview.disabled = false;
+      btnSplitExportMap.disabled = false;
+      btnSplitExportCsv.disabled = false;
+      hideAlert();
+    }
+
+    wireDropzone(splitKmzDropzone, splitKmzInput, setSplitKmz);
+    btnUseTab1SplitKmz.addEventListener('click', () => {
+      if (selectedFile) setSplitKmz(selectedFile);
+    });
+
+    function buildSplitFormData(formatOverride = null) {
+      const fd = new FormData();
+      fd.append('kmzFile', splitKmzFile);
+      fd.append('maxHasbelMeters', document.getElementById('splitMaxHasbel').value);
+      fd.append('slackLengthMeters', document.getElementById('splitSlackLen').value);
+      fd.append('slackIntervalMeters', document.getElementById('splitSlackInt').value);
+      fd.append('sparePercent', document.getElementById('splitSpare').value);
+      fd.append('snapToPole', document.getElementById('splitSnapPole').checked);
+      fd.append('outputFormat', formatOverride || document.getElementById('splitFormat').value);
+      return fd;
+    }
+
+    btnSplitPreview.addEventListener('click', async () => {
+      if (!splitKmzFile) return;
+      hideAlert();
+      btnSplitPreview.disabled = true;
+      btnSplitPreview.textContent = 'Memproses...';
+      try {
+        const res = await fetch('/api/split-preview', { method: 'POST', body: buildSplitFormData() });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal memproses split hasbel');
+        renderSplitResult(data.summary, data.hasbels);
+      } catch (err) {
+        showAlert(err.message, 'error');
+      } finally {
+        btnSplitPreview.disabled = false;
+        btnSplitPreview.textContent = 'Proses & Preview Hasbel';
+      }
+    });
+
+    async function downloadSplit(formatOverride, btnEl, origLabel) {
+      if (!splitKmzFile) return;
+      hideAlert();
+      btnEl.disabled = true;
+      btnEl.textContent = 'Menyiapkan...';
+      try {
+        const res = await fetch('/api/split-export', {
+          method: 'POST',
+          body: buildSplitFormData(formatOverride),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Gagal mengekspor hasil split');
+        }
+        const blob = await res.blob();
+        const disp = res.headers.get('Content-Disposition') || '';
+        const match = disp.match(/filename="([^"]+)"/);
+        const filename = match ? match[1] : `Hasbel_Split.${formatOverride || 'kmz'}`;
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        showAlert(err.message, 'error');
+      } finally {
+        btnEl.disabled = false;
+        btnEl.textContent = origLabel;
+      }
+    }
+
+    btnSplitExportMap.addEventListener('click', () =>
+      downloadSplit(document.getElementById('splitFormat').value, btnSplitExportMap, 'Download KMZ/KML')
+    );
+    btnSplitExportCsv.addEventListener('click', () =>
+      downloadSplit('csv', btnSplitExportCsv, 'Download CSV')
+    );
+
+    function renderSplitResult(summary, hasbels) {
+      splitResultSection.classList.remove('hidden');
+      const kpis = [
+        { label: 'Total Hasbel', value: summary.totalHasbels, sub: `maks. ${summary.maxHasbelMeters} m / hasbel` },
+        { label: 'Joint Closure (JC)', value: summary.totalJointClosures, sub: summary.snapToPole ? 'snap ke pole' : 'koordinat jalur' },
+        { label: 'Total Panjang Rute', value: `${summary.totalRouteMeters} m`, sub: `${summary.sourceCableCount} kabel asal` },
+        { label: 'Total Slack', value: `${summary.totalSlackCount} titik`, sub: `${summary.slackLengthMeters} m / ${summary.slackIntervalMeters} m` },
+        { label: 'Total Kabel (+Spare)', value: `${summary.totalEffectiveMeters} m`, sub: `spare ${summary.sparePercent}%` },
+      ];
+      splitKpiGrid.innerHTML = kpis
+        .map(
+          (k) => `<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>`
+        )
+        .join('');
+
+      splitTableBody.innerHTML = hasbels
+        .map(
+          (h) => `
+          <tr>
+            <td>${h.no}</td>
+            <td class="num"><span style="display:inline-block; width:14px; height:14px; border-radius:4px; background:${h.colorHex}; vertical-align:middle;"></span></td>
+            <td><strong>${escHtml(h.hasbelName)}</strong></td>
+            <td>${h.startCh} – ${h.endCh} m</td>
+            <td class="num">${h.routeLength} m</td>
+            <td class="num">${h.slackCount}× (${h.totalSlackMeters} m)</td>
+            <td class="num" style="font-weight:700; color:var(--primary);">${h.effectiveLength} m <span style="color:var(--muted); font-weight:400; font-size:0.78rem;">(${h.effectiveLengthCeil} m)</span></td>
+            <td>${escHtml(h.startPole)}</td>
+            <td style="color:${h.isJointClosure ? 'var(--warning)' : 'var(--success)'}; font-weight:600;">${escHtml(h.endPole)}</td>
           </tr>`
         )
         .join('');

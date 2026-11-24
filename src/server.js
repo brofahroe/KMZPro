@@ -7,6 +7,7 @@ const { buildOpnameWorkbookBuffer, buildMultiOpnameWorkbookBuffer } = require('.
 const { editKmzForMf } = require('./kmzMfEditor');
 const { cleanKmzBuffer } = require('./kmzCleaner');
 const { processBatchKmzToCsv } = require('./batchCsvExporter');
+const { splitKmzLinesByHasbel } = require('./kmzLineSplitter');
 
 const app = express();
 const upload = multer({
@@ -318,6 +319,87 @@ app.post('/api/batch-export', upload.array('kmzFiles', 500), async (req, res) =>
     res.send(result.csvBuffer);
   } catch (err) {
     res.status(400).json({ error: err.message || 'Gagal mengekspor CSV batch.' });
+  }
+});
+
+function parseSplitOptions(body = {}) {
+  const maxHasbelMeters = parseFloat(body.maxHasbelMeters);
+  const slackLengthMeters = parseFloat(body.slackLengthMeters);
+  const slackIntervalMeters = parseFloat(body.slackIntervalMeters);
+  const sparePercent = parseFloat(body.sparePercent);
+  const snapToPole =
+    body.snapToPole === undefined
+      ? true
+      : body.snapToPole === 'true' || body.snapToPole === true;
+  const outputFormat =
+    body.outputFormat === 'kml'
+      ? 'kml'
+      : body.outputFormat === 'csv'
+      ? 'csv'
+      : 'kmz';
+
+  return {
+    maxHasbelMeters: Number.isFinite(maxHasbelMeters) ? maxHasbelMeters : 3000,
+    slackLengthMeters: Number.isFinite(slackLengthMeters) ? slackLengthMeters : 20,
+    slackIntervalMeters: Number.isFinite(slackIntervalMeters) ? slackIntervalMeters : 400,
+    sparePercent: Number.isFinite(sparePercent) ? sparePercent : 5,
+    snapToPole,
+    outputFormat,
+  };
+}
+
+app.post('/api/split-preview', upload.single('kmzFile'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'File KMZ/KML wajib diunggah.' });
+    }
+    const result = await splitKmzLinesByHasbel(
+      req.file.buffer,
+      req.file.originalname,
+      parseSplitOptions(req.body)
+    );
+    res.json({
+      summary: result.summary,
+      hasbels: result.hasbels,
+      jointClosures: result.jointClosures,
+    });
+  } catch (err) {
+    res.status(400).json({ error: err.message || 'Gagal memproses split hasbel.' });
+  }
+});
+
+app.post('/api/split-export', upload.single('kmzFile'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'File KMZ/KML wajib diunggah.' });
+    }
+    const opts = parseSplitOptions(req.body);
+    const result = await splitKmzLinesByHasbel(
+      req.file.buffer,
+      req.file.originalname,
+      opts
+    );
+    const baseName = path
+      .basename(req.file.originalname, path.extname(req.file.originalname))
+      .replace(/[^\w\- ]+/g, '_');
+
+    if (opts.outputFormat === 'csv') {
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${baseName}_HASBEL.csv"`);
+      return res.send(result.csvBuffer);
+    }
+
+    const ext = opts.outputFormat === 'kml' ? 'kml' : 'kmz';
+    res.setHeader(
+      'Content-Type',
+      ext === 'kml'
+        ? 'application/vnd.google-earth.kml+xml'
+        : 'application/vnd.google-earth.kmz'
+    );
+    res.setHeader('Content-Disposition', `attachment; filename="${baseName}_HASBEL.${ext}"`);
+    res.send(result.outBuffer);
+  } catch (err) {
+    res.status(400).json({ error: err.message || 'Gagal mengekspor hasil split.' });
   }
 });
 
