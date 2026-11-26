@@ -61,20 +61,45 @@ function getElementText(parent, tagName) {
 }
 
 /**
- * Collect all LineString coordinate arrays from a KML document.
+ * Check if a DOM node is nested inside a Folder whose name matches regex.
  */
-function extractAllLineStrings(kmlText) {
+function isInsideFolderMatching(node, regex) {
+  let cur = node ? node.parentNode : null;
+  while (cur) {
+    if (cur.nodeType === 1 && cur.nodeName === 'Folder') {
+      const fName = getElementText(cur, 'name');
+      if (regex.test(fName)) return true;
+    }
+    cur = cur.parentNode;
+  }
+  return false;
+}
+
+/**
+ * Collect all LineString coordinate arrays from a KML document.
+ * When excludeBoundaryAndDrop is true, skips BOUNDARY and DROP folders (falling back to all if empty).
+ */
+function extractAllLineStrings(kmlText, excludeBoundaryAndDrop = false) {
   const doc = new DOMParser().parseFromString(kmlText, 'text/xml');
   const lineNodes = doc.getElementsByTagName('LineString');
-  const lines = [];
+  const filtered = [];
+  const all = [];
   for (let i = 0; i < lineNodes.length; i++) {
     const coordEl = getDirectChild(lineNodes[i], 'coordinates');
     if (coordEl && coordEl.textContent) {
       const pts = parseCoords(coordEl.textContent);
-      if (pts.length >= 2) lines.push(pts);
+      if (pts.length >= 2) {
+        all.push(pts);
+        if (
+          !excludeBoundaryAndDrop ||
+          !isInsideFolderMatching(lineNodes[i], /^(BOUNDARY\b|.*\bDROP\b)/i)
+        ) {
+          filtered.push(pts);
+        }
+      }
     }
   }
-  return lines;
+  return excludeBoundaryAndDrop && filtered.length > 0 ? filtered : all;
 }
 
 /**
@@ -96,9 +121,17 @@ function findExisting74StyleUrl(rootDoc) {
 }
 
 /**
- * Inject or replace a custom Style element for 4-inch poles in <Document>.
+ * Inject or replace a custom Style element for poles in <Document>.
  */
 function ensureCustomStyle(xmlDoc, targetDocEl, styleId, kmlColor) {
+  // Remove any existing Style with the same id to avoid duplicates
+  const existingStyles = Array.from(targetDocEl.getElementsByTagName('Style'));
+  for (const st of existingStyles) {
+    if (st.getAttribute('id') === styleId && st.parentNode) {
+      st.parentNode.removeChild(st);
+    }
+  }
+
   const styleEl = xmlDoc.createElement('Style');
   styleEl.setAttribute('id', styleId);
 
@@ -134,30 +167,90 @@ function ensureCustomStyle(xmlDoc, targetDocEl, styleId, kmlColor) {
 }
 
 /**
- * Edit KMZ poles (2.5" and 3" -> 4") that lie along MF cable routes.
+ * Apply styleUrl to a Placemark, removing any inline <Style> that would override it.
  */
-async function editKmzForMf(baseBuffer, baseFilename, mfBuffer, mfFilename, options = {}) {
+function applyStyleUrlToPlacemark(xmlDoc, pm, targetStyleUrl) {
+  const inlineStyles = getDirectChildren(pm, 'Style');
+  for (const st of inlineStyles) {
+    pm.removeChild(st);
+  }
+  let styleUrlEl = getDirectChild(pm, 'styleUrl');
+  if (!styleUrlEl) {
+    styleUrlEl = xmlDoc.createElement('styleUrl');
+    pm.appendChild(styleUrlEl);
+  }
+  styleUrlEl.textContent = targetStyleUrl;
+}
+
+/**
+ * Find nearest parent folder name representing a LINE/SEGMENT, or fallback to immediate folder.
+ */
+function resolveLineName(folder) {
+  let cur = folder ? folder.parentNode : null;
+  while (cur && cur.nodeType === 1 && cur.nodeName === 'Folder') {
+    const name = getElementText(cur, 'name');
+    if (name && (/^(LINE|SEGMENT|SEG)\b/i.test(name) || /^S\d{1,3}$/i.test(name))) {
+      return name;
+    }
+    cur = cur.parentNode;
+  }
+  const parent = folder ? folder.parentNode : null;
+  if (parent && parent.nodeType === 1 && parent.nodeName === 'Folder') {
+    return getElementText(parent, 'name') || 'MAIN';
+  }
+  return 'MAIN';
+}
+
+/**
+ * Edit KMZ poles:
+ * - mode 'upgrade_to_4': Base = Cluster KMZ, Ref = MF KMZ -> move 2.5" & 3" poles along MF route to NEW POLE 7-4
+ * - mode 'mf_to_white': Base = MF Pole KMZ, Ref = Cluster KMZ(s) -> recolor MF poles intersecting cluster routes to white
+ */
+async function editKmzForMf(baseBuffer, baseFilename, refInput, maybeRefFilename, maybeOptions) {
+  let refFiles = [];
+  let options = {};
+  if (Array.isArray(refInput)) {
+    refFiles = refInput;
+    options = maybeRefFilename || {};
+  } else {
+    refFiles = [{ buffer: refInput, filename: maybeRefFilename || 'ref.kmz' }];
+    options = maybeOptions || {};
+  }
+
+  const mode = options.mode === 'mf_to_white' ? 'mf_to_white' : 'upgrade_to_4';
   const toleranceMeters = Number.isFinite(options.toleranceMeters)
     ? options.toleranceMeters
     : 5.0;
   const overrideColor = Boolean(options.overrideColor);
-  const customHexColor = options.poleColor || '#ef4444';
+  const customHexColor =
+    options.poleColor || (mode === 'mf_to_white' ? '#ffffff' : '#ef4444');
 
   const baseExtracted = await extractKmlFromBuffer(baseBuffer, baseFilename);
-  const mfExtracted = await extractKmlFromBuffer(mfBuffer, mfFilename);
 
-  const mfLines = extractAllLineStrings(mfExtracted.kmlText);
-  if (mfLines.length === 0) {
-    throw new Error('Tidak ditemukan jalur kabel (LineString) di dalam KMZ Jalur MF.');
+  const refLines = [];
+  for (const rf of refFiles) {
+    const extracted = await extractKmlFromBuffer(rf.buffer, rf.filename);
+    const lines = extractAllLineStrings(extracted.kmlText, mode === 'mf_to_white');
+    refLines.push(...lines);
+  }
+  if (refLines.length === 0) {
+    throw new Error(
+      mode === 'mf_to_white'
+        ? 'Tidak ditemukan jalur kabel (LineString) di dalam KMZ Cluster.'
+        : 'Tidak ditemukan jalur kabel (LineString) di dalam KMZ Jalur MF.'
+    );
   }
 
   const xmlDoc = new DOMParser().parseFromString(baseExtracted.kmlText, 'text/xml');
   const documentEl =
     xmlDoc.getElementsByTagName('Document')[0] || xmlDoc.documentElement;
 
-  let targetStyleUrl = overrideColor ? null : findExisting74StyleUrl(xmlDoc);
-  if (!targetStyleUrl) {
-    const customStyleId = 'kmzpro_pole_7_4';
+  const changes = [];
+  let totalCandidatePoles = 0;
+  let targetStyleUrl = '';
+
+  if (mode === 'mf_to_white') {
+    const customStyleId = 'kmzpro_pole_mf_white';
     ensureCustomStyle(
       xmlDoc,
       documentEl,
@@ -165,24 +258,48 @@ async function editKmzForMf(baseBuffer, baseFilename, mfBuffer, mfFilename, opti
       hexToKmlColor(customHexColor)
     );
     targetStyleUrl = `#${customStyleId}`;
-  }
 
-  const allFolders = Array.from(xmlDoc.getElementsByTagName('Folder'));
-  let totalCandidatePoles = 0;
-  const changes = [];
+    const poleFolderRegex = /(?:NEW|EXISTING)\s+POLE|\bPOLE\b|\bTIANG\b/i;
+    const nonPoleFolderRegex = /^(FDT|FAT|SLACK|BOUNDARY|HP\b|JC\b|JOINT\s*CLOSURE|OLT|ODP|ODC|SLING)/i;
 
-  for (const folder of allFolders) {
-    const folderName = getElementText(folder, 'name');
-    if (!/^NEW\s+POLE\s+7-(2\.5|3)$/i.test(folderName)) continue;
+    const allFolders = Array.from(xmlDoc.getElementsByTagName('Folder'));
+    const poleFolders = allFolders.filter((f) =>
+      poleFolderRegex.test(getElementText(f, 'name'))
+    );
 
-    const parentFolder = folder.parentNode;
-    const parentLineName =
-      parentFolder && parentFolder.nodeName === 'Folder'
-        ? getElementText(parentFolder, 'name') || 'MAIN'
-        : 'MAIN';
+    const candidateEntries = [];
+    if (poleFolders.length > 0) {
+      for (const folder of poleFolders) {
+        const folderName = getElementText(folder, 'name') || 'POLE';
+        const lineName = resolveLineName(folder);
+        const placemarks = getDirectChildren(folder, 'Placemark');
+        for (const pm of placemarks) {
+          candidateEntries.push({ pm, folderName, lineName });
+        }
+      }
+    } else {
+      // Fallback: inspect all Point placemarks not inside non-pole folders
+      const allPlacemarks = Array.from(xmlDoc.getElementsByTagName('Placemark'));
+      for (const pm of allPlacemarks) {
+        const parent = pm.parentNode;
+        const folderName =
+          parent && parent.nodeName === 'Folder'
+            ? getElementText(parent, 'name') || 'ROOT'
+            : 'ROOT';
+        if (nonPoleFolderRegex.test(folderName)) continue;
+        if (isInsideFolderMatching(pm, nonPoleFolderRegex)) continue;
+        const lineName =
+          parent && parent.nodeName === 'Folder' ? resolveLineName(parent) : 'MAIN';
+        candidateEntries.push({ pm, folderName, lineName });
+      }
+    }
 
-    const placemarks = getDirectChildren(folder, 'Placemark');
-    for (const pm of placemarks) {
+    const colorLabel =
+      customHexColor.toUpperCase() === '#FFFFFF'
+        ? 'Putih (#FFFFFF)'
+        : customHexColor.toUpperCase();
+
+    for (const { pm, folderName, lineName } of candidateEntries) {
       const pointEl = getDirectChild(pm, 'Point');
       if (!pointEl) continue;
       const coordText = getElementText(pointEl, 'coordinates');
@@ -193,50 +310,101 @@ async function editKmzForMf(baseBuffer, baseFilename, mfBuffer, mfFilename, opti
       const coord = pts[0];
 
       let minDist = 1e9;
-      for (const mfPts of mfLines) {
-        const pr = pointToLineProj(coord, mfPts);
+      for (const refPts of refLines) {
+        const pr = pointToLineProj(coord, refPts);
         if (pr.dist < minDist) minDist = pr.dist;
       }
 
       if (minDist <= toleranceMeters) {
         const poleId = getElementText(pm, 'name') || '(Tanpa Nama)';
-
-        // Find or create sibling NEW POLE 7-4 folder
-        let target74Folder = null;
-        const siblingFolders = getDirectChildren(parentFolder, 'Folder');
-        for (const sib of siblingFolders) {
-          if (/^NEW\s+POLE\s+7-4$/i.test(getElementText(sib, 'name'))) {
-            target74Folder = sib;
-            break;
-          }
-        }
-        if (!target74Folder) {
-          target74Folder = xmlDoc.createElement('Folder');
-          const nameEl = xmlDoc.createElement('name');
-          nameEl.textContent = 'NEW POLE 7-4';
-          target74Folder.appendChild(nameEl);
-          parentFolder.appendChild(target74Folder);
-        }
-
-        // Update styleUrl
-        let styleUrlEl = getDirectChild(pm, 'styleUrl');
-        if (!styleUrlEl) {
-          styleUrlEl = xmlDoc.createElement('styleUrl');
-          pm.appendChild(styleUrlEl);
-        }
-        styleUrlEl.textContent = targetStyleUrl;
-
-        // Move placemark to NEW POLE 7-4
-        folder.removeChild(pm);
-        target74Folder.appendChild(pm);
+        applyStyleUrlToPlacemark(xmlDoc, pm, targetStyleUrl);
 
         changes.push({
           poleId,
-          line: parentLineName,
+          line: lineName,
           fromFolder: folderName,
-          toFolder: 'NEW POLE 7-4',
+          toFolder: `Warna ${colorLabel}`,
           distanceMeters: Math.round(minDist * 100) / 100,
         });
+      }
+    }
+  } else {
+    targetStyleUrl = overrideColor ? null : findExisting74StyleUrl(xmlDoc);
+    if (!targetStyleUrl) {
+      const customStyleId = 'kmzpro_pole_7_4';
+      ensureCustomStyle(
+        xmlDoc,
+        documentEl,
+        customStyleId,
+        hexToKmlColor(customHexColor)
+      );
+      targetStyleUrl = `#${customStyleId}`;
+    }
+
+    const allFolders = Array.from(xmlDoc.getElementsByTagName('Folder'));
+
+    for (const folder of allFolders) {
+      const folderName = getElementText(folder, 'name');
+      if (!/^NEW\s+POLE\s+7-(2\.5|3)$/i.test(folderName)) continue;
+
+      const parentFolder = folder.parentNode;
+      const parentLineName =
+        parentFolder && parentFolder.nodeName === 'Folder'
+          ? getElementText(parentFolder, 'name') || 'MAIN'
+          : 'MAIN';
+
+      const placemarks = getDirectChildren(folder, 'Placemark');
+      for (const pm of placemarks) {
+        const pointEl = getDirectChild(pm, 'Point');
+        if (!pointEl) continue;
+        const coordText = getElementText(pointEl, 'coordinates');
+        const pts = parseCoords(coordText);
+        if (pts.length === 0) continue;
+
+        totalCandidatePoles++;
+        const coord = pts[0];
+
+        let minDist = 1e9;
+        for (const mfPts of refLines) {
+          const pr = pointToLineProj(coord, mfPts);
+          if (pr.dist < minDist) minDist = pr.dist;
+        }
+
+        if (minDist <= toleranceMeters) {
+          const poleId = getElementText(pm, 'name') || '(Tanpa Nama)';
+
+          // Find or create sibling NEW POLE 7-4 folder
+          let target74Folder = null;
+          const siblingFolders = getDirectChildren(parentFolder, 'Folder');
+          for (const sib of siblingFolders) {
+            if (/^NEW\s+POLE\s+7-4$/i.test(getElementText(sib, 'name'))) {
+              target74Folder = sib;
+              break;
+            }
+          }
+          if (!target74Folder) {
+            target74Folder = xmlDoc.createElement('Folder');
+            const nameEl = xmlDoc.createElement('name');
+            nameEl.textContent = 'NEW POLE 7-4';
+            target74Folder.appendChild(nameEl);
+            parentFolder.appendChild(target74Folder);
+          }
+
+          // Update styleUrl (removing any overriding inline Style)
+          applyStyleUrlToPlacemark(xmlDoc, pm, targetStyleUrl);
+
+          // Move placemark to NEW POLE 7-4
+          folder.removeChild(pm);
+          target74Folder.appendChild(pm);
+
+          changes.push({
+            poleId,
+            line: parentLineName,
+            fromFolder: folderName,
+            toFolder: 'NEW POLE 7-4',
+            distanceMeters: Math.round(minDist * 100) / 100,
+          });
+        }
       }
     }
   }
@@ -253,11 +421,13 @@ async function editKmzForMf(baseBuffer, baseFilename, mfBuffer, mfFilename, opti
 
   return {
     summary: {
-      mfLineCount: mfLines.length,
+      mode,
+      mfLineCount: refLines.length,
       totalCandidatePoles,
       changedCount: changes.length,
       unchangedCount: totalCandidatePoles - changes.length,
       targetStyleUrl,
+      poleColor: customHexColor,
       toleranceMeters,
     },
     changes,

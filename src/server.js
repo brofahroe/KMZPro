@@ -187,33 +187,34 @@ app.post('/api/export', opnameUpload, async (req, res) => {
 
 const mfUpload = upload.fields([
   { name: 'baseKmz', maxCount: 1 },
-  { name: 'mfKmz', maxCount: 1 },
+  { name: 'mfKmz', maxCount: 50 },
 ]);
 
 function parseMfOptions(body = {}) {
+  const mode = body.mode === 'mf_to_white' ? 'mf_to_white' : 'upgrade_to_4';
   const toleranceMeters = parseFloat(body.toleranceMeters);
   const overrideColor =
     body.overrideColor === 'true' || body.overrideColor === true;
   return {
+    mode,
     toleranceMeters: Number.isFinite(toleranceMeters) ? toleranceMeters : 5.0,
     overrideColor,
-    poleColor: body.poleColor || '#ef4444',
+    poleColor: body.poleColor || (mode === 'mf_to_white' ? '#ffffff' : '#ef4444'),
   };
 }
 
 app.post('/api/mf-preview', mfUpload, async (req, res) => {
   try {
     const baseFile = req.files?.baseKmz?.[0];
-    const mfFile = req.files?.mfKmz?.[0];
-    if (!baseFile || !mfFile) {
-      return res.status(400).json({ error: 'KMZ Awal dan KMZ Jalur MF wajib diunggah.' });
+    const mfFiles = req.files?.mfKmz || [];
+    if (!baseFile || mfFiles.length === 0) {
+      return res.status(400).json({ error: 'File KMZ Awal dan KMZ pembanding wajib diunggah.' });
     }
     const { editKmzForMf } = require('./kmzMfEditor');
     const result = await editKmzForMf(
       baseFile.buffer,
       baseFile.originalname,
-      mfFile.buffer,
-      mfFile.originalname,
+      mfFiles.map((f) => ({ buffer: f.buffer, filename: f.originalname })),
       parseMfOptions(req.body)
     );
     res.json({ summary: result.summary, changes: result.changes });
@@ -225,22 +226,25 @@ app.post('/api/mf-preview', mfUpload, async (req, res) => {
 app.post('/api/mf-export', mfUpload, async (req, res) => {
   try {
     const baseFile = req.files?.baseKmz?.[0];
-    const mfFile = req.files?.mfKmz?.[0];
-    if (!baseFile || !mfFile) {
-      return res.status(400).json({ error: 'KMZ Awal dan KMZ Jalur MF wajib diunggah.' });
+    const mfFiles = req.files?.mfKmz || [];
+    if (!baseFile || mfFiles.length === 0) {
+      return res.status(400).json({ error: 'File KMZ Awal dan KMZ pembanding wajib diunggah.' });
     }
+    const opts = parseMfOptions(req.body);
     const { editKmzForMf } = require('./kmzMfEditor');
     const result = await editKmzForMf(
       baseFile.buffer,
       baseFile.originalname,
-      mfFile.buffer,
-      mfFile.originalname,
-      parseMfOptions(req.body)
+      mfFiles.map((f) => ({ buffer: f.buffer, filename: f.originalname })),
+      opts
     );
     const baseName = path
       .basename(baseFile.originalname, path.extname(baseFile.originalname))
       .replace(/[^\w\- ]+/g, '_');
-    const outName = `${baseName}_EDITED_MF.kmz`;
+    const outName =
+      opts.mode === 'mf_to_white'
+        ? `${baseName}_MF_WHITE.kmz`
+        : `${baseName}_EDITED_MF.kmz`;
 
     res.setHeader('Content-Type', 'application/vnd.google-earth.kmz');
     res.setHeader('Content-Disposition', `attachment; filename="${outName}"`);

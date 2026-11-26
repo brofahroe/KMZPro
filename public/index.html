@@ -821,7 +821,7 @@
               <select id="networkMode">
                 <option value="auto">Auto-Deteksi (Distribusi / Feeder)</option>
                 <option value="distribusi">Distribusi (Slack di FAT / FDT)</option>
-                <option value="feeder">Subfeeder / SF / MF / HF / Feeder (Slack 400m &amp; JC per Hasbel)</option>
+                <option value="feeder">Subfeeder / SF / MF / HF / Feeder (Slack 400m, Ujung Kabel &amp; JC per Hasbel)</option>
               </select>
             </div>
             <div class="form-group">
@@ -972,23 +972,32 @@
         <div
           style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
           <div>
-            <h2 style="font-size:1.15rem;">Edit KMZ — Upgrade Pole 2.5" &amp; 3" ke 4" (Jalur MF)</h2>
-            <p style="font-size:0.85rem; color:var(--muted);">Pole NEW 7-2.5 dan NEW 7-3 yang dilalui jalur kabel MF (≤
+            <h2 id="mfModeTitle" style="font-size:1.15rem;">Edit KMZ — Upgrade Pole 2.5" &amp; 3" ke 4" (Jalur MF)</h2>
+            <p id="mfModeDesc" style="font-size:0.85rem; color:var(--muted);">Pole NEW 7-2.5 dan NEW 7-3 yang dilalui jalur kabel MF (≤
               toleransi jarak) dipindah ke folder NEW POLE 7-4 dan disesuaikan warna/style-nya.</p>
           </div>
           <button id="btnUseTab1Kmz" class="btn-secondary" disabled>Pakai KMZ dari Tab 1</button>
         </div>
 
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+          <button type="button" id="btnModeUpgrade4" class="btn-primary" style="font-size:0.83rem; padding:8px 14px;">
+            1. Cluster + Jalur MF → Upgrade Pole 4"
+          </button>
+          <button type="button" id="btnModeMfWhite" class="btn-secondary" style="font-size:0.83rem; padding:8px 14px;">
+            2. Pole MF + KMZ Cluster → Pole Putih (Bersilangan)
+          </button>
+        </div>
+
         <div class="upload-grid grid-2" style="margin-bottom: 16px;">
           <div id="baseKmzDropzone" class="dropzone" style="padding:24px 16px;">
-            <div>📂 <strong>1. KMZ Awal</strong> (.kmz / .kml)</div>
-            <div style="font-size:0.8rem; color:var(--muted);">Tarik &amp; lepaskan atau klik untuk memilih</div>
+            <div id="baseKmzTitle">📂 <strong>1. KMZ Awal (Cluster)</strong> (.kmz / .kml)</div>
+            <div id="baseKmzHint" style="font-size:0.8rem; color:var(--muted);">Tarik &amp; lepaskan atau klik untuk memilih</div>
             <div id="baseKmzName" class="file-name"></div>
             <input type="file" id="baseKmzInput" accept=".kmz,.kml" class="hidden" />
           </div>
           <div id="mfKmzDropzone" class="dropzone" style="padding:24px 16px;">
-            <div>🧵 <strong>2. KMZ Jalur MF</strong> (.kmz / .kml)</div>
-            <div style="font-size:0.8rem; color:var(--muted);">Berisi rute LineString kabel MF</div>
+            <div id="mfKmzTitle">🧵 <strong>2. KMZ Jalur MF</strong> (.kmz / .kml)</div>
+            <div id="mfKmzHint" style="font-size:0.8rem; color:var(--muted);">Berisi rute LineString kabel MF</div>
             <div id="mfKmzName" class="file-name"></div>
             <input type="file" id="mfKmzInput" accept=".kmz,.kml" class="hidden" />
           </div>
@@ -996,15 +1005,15 @@
 
         <div class="cut-controls">
           <div class="form-group" style="margin-bottom:0;">
-            <label for="mfTolerance">Toleransi Jarak ke Jalur MF (meter)</label>
+            <label id="mfToleranceLabel" for="mfTolerance">Toleransi Jarak ke Jalur MF (meter)</label>
             <input type="number" id="mfTolerance" value="5" min="0.5" max="100" step="0.5" />
           </div>
           <div class="form-group" style="margin-bottom:0;">
-            <label>Warna Pole 4" (jika folder 7-4 kosong / override)</label>
+            <label id="mfColorLabel">Warna Pole 4" (jika folder 7-4 kosong / override)</label>
             <div style="display:flex; align-items:center; gap:10px;">
               <input type="color" id="mfPoleColor" value="#ef4444"
                 style="width:48px; height:36px; border:none; background:none; cursor:pointer;" />
-              <label style="display:flex; align-items:center; gap:6px; margin:0; font-size:0.85rem; color:var(--text);">
+              <label id="mfOverrideWrap" style="display:flex; align-items:center; gap:6px; margin:0; font-size:0.85rem; color:var(--text);">
                 <input type="checkbox" id="mfOverrideColor" />
                 Paksa pakai warna ini
               </label>
@@ -1020,7 +1029,7 @@
       <div id="mfResultSection" class="hidden">
         <div id="mfKpiGrid" class="kpi-grid"></div>
         <div class="card">
-          <div style="font-size:0.9rem; font-weight:600; margin-bottom:10px;">Daftar Pole yang Diubah ke NEW POLE 7-4
+          <div id="mfTableTitle" style="font-size:0.9rem; font-weight:600; margin-bottom:10px;">Daftar Pole yang Diubah ke NEW POLE 7-4
           </div>
           <div class="table-wrap">
             <table>
@@ -1029,9 +1038,9 @@
                   <th>NO</th>
                   <th>POLE ID</th>
                   <th>LINE</th>
-                  <th>ASAL</th>
-                  <th>MENJADI</th>
-                  <th class="num">JARAK KE MF (m)</th>
+                  <th id="mfColFrom">ASAL</th>
+                  <th id="mfColTo">MENJADI</th>
+                  <th id="mfColDist" class="num">JARAK KE MF (m)</th>
                 </tr>
               </thead>
               <tbody id="mfTableBody"></tbody>
@@ -1640,7 +1649,11 @@
     }
 
     function detectCableType(name) {
-      return /\b(SUBFEEDER|SF|MF|HF|FEEDER)\b/i.test(name || '') ? 'feeder' : 'distribusi';
+      const s = name || '';
+      return /(SUB\s*FEEDER|HUB\s*FEEDER|MAIN\s*FEEDER|FEEDER|UPLINK|BACKBONE)/i.test(s) ||
+        /(?:^|[^A-Z])(MFM|MF|SFM|SF|HF)(?=[^A-Z]|$)/i.test(s)
+        ? 'feeder'
+        : 'distribusi';
     }
 
     function calcFeederSlackCount(routeLength) {
@@ -1861,7 +1874,24 @@
 
     renderCutTable();
 
-    // --- Edit KMZ (Jalur MF) ---
+    // --- Edit KMZ (Jalur MF & Reverse MF vs Cluster) ---
+    const btnModeUpgrade4 = document.getElementById('btnModeUpgrade4');
+    const btnModeMfWhite = document.getElementById('btnModeMfWhite');
+    const mfModeTitle = document.getElementById('mfModeTitle');
+    const mfModeDesc = document.getElementById('mfModeDesc');
+    const baseKmzTitle = document.getElementById('baseKmzTitle');
+    const baseKmzHint = document.getElementById('baseKmzHint');
+    const mfKmzTitle = document.getElementById('mfKmzTitle');
+    const mfKmzHint = document.getElementById('mfKmzHint');
+    const mfToleranceLabel = document.getElementById('mfToleranceLabel');
+    const mfColorLabel = document.getElementById('mfColorLabel');
+    const mfPoleColorEl = document.getElementById('mfPoleColor');
+    const mfOverrideWrap = document.getElementById('mfOverrideWrap');
+    const mfTableTitle = document.getElementById('mfTableTitle');
+    const mfColFrom = document.getElementById('mfColFrom');
+    const mfColTo = document.getElementById('mfColTo');
+    const mfColDist = document.getElementById('mfColDist');
+
     const baseKmzDropzone = document.getElementById('baseKmzDropzone');
     const baseKmzInput = document.getElementById('baseKmzInput');
     const baseKmzName = document.getElementById('baseKmzName');
@@ -1875,11 +1905,66 @@
     const mfKpiGrid = document.getElementById('mfKpiGrid');
     const mfTableBody = document.getElementById('mfTableBody');
 
+    let editKmzMode = 'upgrade_to_4';
     let baseKmzFile = null;
-    let mfKmzFile = null;
+    let mfKmzFiles = [];
+
+    function applyEditKmzMode(mode) {
+      editKmzMode = mode === 'mf_to_white' ? 'mf_to_white' : 'upgrade_to_4';
+      const isReverse = editKmzMode === 'mf_to_white';
+
+      btnModeUpgrade4.className = isReverse ? 'btn-secondary' : 'btn-primary';
+      btnModeMfWhite.className = isReverse ? 'btn-primary' : 'btn-secondary';
+
+      if (isReverse) {
+        mfModeTitle.textContent = 'Edit KMZ — Pole MF Bersilangan Cluster → Warna Putih';
+        mfModeDesc.textContent =
+          'KMZ awal berisi pole Main Feeder (MF) dan input kedua adalah KMZ Cluster. Pole MF yang bersilangan dengan jalur kabel Cluster (≤ toleransi jarak) langsung diubah warnanya menjadi putih.';
+        baseKmzTitle.innerHTML = '📂 <strong>1. KMZ Awal (Pole MF)</strong> (.kmz / .kml)';
+        baseKmzHint.textContent = 'File KMZ Main Feeder berisi pole yang akan diubah warnanya';
+        mfKmzTitle.innerHTML = '🗺️ <strong>2. KMZ Cluster</strong> (.kmz / .kml)';
+        mfKmzHint.textContent = 'Berisi jalur kabel Cluster (bisa pilih 1 atau lebih file KMZ)';
+        mfKmzInput.multiple = true;
+        mfToleranceLabel.textContent = 'Toleransi Jarak ke Jalur Cluster (meter)';
+        mfColorLabel.textContent = 'Warna Pole Bersilangan (default Putih)';
+        mfPoleColorEl.value = '#ffffff';
+        mfOverrideWrap.style.display = 'none';
+        mfTableTitle.textContent = 'Daftar Pole MF yang Diubah Warna (Bersilangan dengan Cluster)';
+        mfColFrom.textContent = 'FOLDER POLE';
+        mfColTo.textContent = 'WARNA BARU';
+        mfColDist.textContent = 'JARAK KE CLUSTER (m)';
+      } else {
+        mfModeTitle.textContent = 'Edit KMZ — Upgrade Pole 2.5" & 3" ke 4" (Jalur MF)';
+        mfModeDesc.textContent =
+          'Pole NEW 7-2.5 dan NEW 7-3 yang dilalui jalur kabel MF (≤ toleransi jarak) dipindah ke folder NEW POLE 7-4 dan disesuaikan warna/style-nya.';
+        baseKmzTitle.innerHTML = '📂 <strong>1. KMZ Awal (Cluster)</strong> (.kmz / .kml)';
+        baseKmzHint.textContent = 'Tarik & lepaskan atau klik untuk memilih';
+        mfKmzTitle.innerHTML = '🧵 <strong>2. KMZ Jalur MF</strong> (.kmz / .kml)';
+        mfKmzHint.textContent = 'Berisi rute LineString kabel MF';
+        mfKmzInput.multiple = false;
+        if (mfKmzFiles.length > 1) {
+          mfKmzFiles = [mfKmzFiles[0]];
+          mfKmzName.textContent = `Terpilih: ${mfKmzFiles[0].name} (${(mfKmzFiles[0].size / 1024).toFixed(1)} KB)`;
+        }
+        mfToleranceLabel.textContent = 'Toleransi Jarak ke Jalur MF (meter)';
+        mfColorLabel.textContent = 'Warna Pole 4" (jika folder 7-4 kosong / override)';
+        mfPoleColorEl.value = '#ef4444';
+        mfOverrideWrap.style.display = 'flex';
+        mfTableTitle.textContent = 'Daftar Pole yang Diubah ke NEW POLE 7-4';
+        mfColFrom.textContent = 'ASAL';
+        mfColTo.textContent = 'MENJADI';
+        mfColDist.textContent = 'JARAK KE MF (m)';
+      }
+
+      mfResultSection.classList.add('hidden');
+      hideAlert();
+    }
+
+    btnModeUpgrade4.addEventListener('click', () => applyEditKmzMode('upgrade_to_4'));
+    btnModeMfWhite.addEventListener('click', () => applyEditKmzMode('mf_to_white'));
 
     function updateMfButtons() {
-      const ready = Boolean(baseKmzFile && mfKmzFile);
+      const ready = Boolean(baseKmzFile && mfKmzFiles.length > 0);
       btnMfPreview.disabled = !ready;
       btnMfExport.disabled = !ready;
     }
@@ -1892,17 +1977,27 @@
       hideAlert();
     }
 
-    function setMfKmz(file) {
-      if (!file) return;
-      mfKmzFile = file;
-      mfKmzName.textContent = `Terpilih: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+    function setMfKmzFiles(fileList) {
+      const files = Array.from(fileList || []).filter((f) => /\.(kmz|kml)$/i.test(f.name));
+      if (files.length === 0) return;
+      mfKmzFiles = editKmzMode === 'mf_to_white' ? files : [files[0]];
+      if (mfKmzFiles.length === 1) {
+        const f = mfKmzFiles[0];
+        mfKmzName.textContent = `Terpilih: ${f.name} (${(f.size / 1024).toFixed(1)} KB)`;
+      } else {
+        const totalKb = mfKmzFiles.reduce((s, f) => s + f.size, 0) / 1024;
+        mfKmzName.textContent = `Terpilih: ${mfKmzFiles.length} file (${totalKb.toFixed(1)} KB)`;
+      }
       updateMfButtons();
       hideAlert();
     }
 
-    function wireDropzone(zone, input, setter) {
+    function wireDropzone(zone, input, setter, isMulti = false) {
       zone.addEventListener('click', () => input.click());
-      input.addEventListener('change', (e) => setter(e.target.files[0]));
+      input.addEventListener('change', (e) => {
+        if (isMulti) setter(e.target.files);
+        else setter(e.target.files[0]);
+      });
       zone.addEventListener('dragover', (e) => {
         e.preventDefault();
         zone.classList.add('dragover');
@@ -1911,12 +2006,15 @@
       zone.addEventListener('drop', (e) => {
         e.preventDefault();
         zone.classList.remove('dragover');
-        if (e.dataTransfer.files.length > 0) setter(e.dataTransfer.files[0]);
+        if (e.dataTransfer.files.length > 0) {
+          if (isMulti) setter(e.dataTransfer.files);
+          else setter(e.dataTransfer.files[0]);
+        }
       });
     }
 
     wireDropzone(baseKmzDropzone, baseKmzInput, setBaseKmz);
-    wireDropzone(mfKmzDropzone, mfKmzInput, setMfKmz);
+    wireDropzone(mfKmzDropzone, mfKmzInput, setMfKmzFiles, true);
 
     btnUseTab1Kmz.addEventListener('click', () => {
       if (selectedFile) setBaseKmz(selectedFile);
@@ -1924,16 +2022,22 @@
 
     function buildMfFormData() {
       const fd = new FormData();
+      fd.append('mode', editKmzMode);
       fd.append('baseKmz', baseKmzFile);
-      fd.append('mfKmz', mfKmzFile);
+      for (const f of mfKmzFiles) {
+        fd.append('mfKmz', f);
+      }
       fd.append('toleranceMeters', document.getElementById('mfTolerance').value);
-      fd.append('overrideColor', document.getElementById('mfOverrideColor').checked);
-      fd.append('poleColor', document.getElementById('mfPoleColor').value);
+      fd.append(
+        'overrideColor',
+        editKmzMode === 'mf_to_white' ? true : document.getElementById('mfOverrideColor').checked
+      );
+      fd.append('poleColor', mfPoleColorEl.value);
       return fd;
     }
 
     btnMfPreview.addEventListener('click', async () => {
-      if (!baseKmzFile || !mfKmzFile) return;
+      if (!baseKmzFile || mfKmzFiles.length === 0) return;
       hideAlert();
       btnMfPreview.disabled = true;
       btnMfPreview.textContent = 'Memproses...';
@@ -1951,7 +2055,7 @@
     });
 
     btnMfExport.addEventListener('click', async () => {
-      if (!baseKmzFile || !mfKmzFile) return;
+      if (!baseKmzFile || mfKmzFiles.length === 0) return;
       hideAlert();
       btnMfExport.disabled = true;
       btnMfExport.textContent = 'Menyiapkan KMZ...';
@@ -1964,7 +2068,11 @@
         const blob = await res.blob();
         const disp = res.headers.get('Content-Disposition') || '';
         const match = disp.match(/filename="([^"]+)"/);
-        const filename = match ? match[1] : 'Edited_MF.kmz';
+        const filename = match
+          ? match[1]
+          : editKmzMode === 'mf_to_white'
+          ? 'Edited_MF_White.kmz'
+          : 'Edited_MF.kmz';
 
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -1984,12 +2092,24 @@
 
     function renderMfResult(summary, changes) {
       mfResultSection.classList.remove('hidden');
-      const kpis = [
-        { label: 'Jalur MF', value: summary.mfLineCount, sub: 'LineString MF' },
-        { label: 'Pole 2.5" & 3"', value: summary.totalCandidatePoles, sub: 'total kandidat' },
-        { label: 'Diubah ke 4"', value: summary.changedCount, sub: `toleransi ≤ ${summary.toleranceMeters} m` },
-        { label: 'Tetap', value: summary.unchangedCount, sub: 'tidak dilalui MF' },
-      ];
+      const isReverse = summary.mode === 'mf_to_white';
+      const kpis = isReverse
+        ? [
+            { label: 'Jalur Cluster', value: summary.mfLineCount, sub: 'LineString Cluster' },
+            { label: 'Total Pole MF', value: summary.totalCandidatePoles, sub: 'total kandidat pole' },
+            {
+              label: 'Diubah ke Putih',
+              value: summary.changedCount,
+              sub: `toleransi ≤ ${summary.toleranceMeters} m`,
+            },
+            { label: 'Tetap', value: summary.unchangedCount, sub: 'tidak bersilangan' },
+          ]
+        : [
+            { label: 'Jalur MF', value: summary.mfLineCount, sub: 'LineString MF' },
+            { label: 'Pole 2.5" & 3"', value: summary.totalCandidatePoles, sub: 'total kandidat' },
+            { label: 'Diubah ke 4"', value: summary.changedCount, sub: `toleransi ≤ ${summary.toleranceMeters} m` },
+            { label: 'Tetap', value: summary.unchangedCount, sub: 'tidak dilalui MF' },
+          ];
       mfKpiGrid.innerHTML = kpis
         .map(
           (k) => `<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>`
@@ -1997,7 +2117,9 @@
         .join('');
 
       if (changes.length === 0) {
-        mfTableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--muted);">Tidak ada pole 2.5" atau 3" yang berada dalam toleransi jarak jalur MF.</td></tr>';
+        mfTableBody.innerHTML = isReverse
+          ? '<tr><td colspan="6" style="text-align:center; color:var(--muted);">Tidak ada pole MF yang bersilangan dengan jalur kabel Cluster dalam toleransi jarak.</td></tr>'
+          : '<tr><td colspan="6" style="text-align:center; color:var(--muted);">Tidak ada pole 2.5" atau 3" yang berada dalam toleransi jarak jalur MF.</td></tr>';
         return;
       }
 

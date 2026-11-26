@@ -215,6 +215,12 @@ function calculateOpname(kmzData, options = {}) {
         isSlackPoint = true;
         curr.remarks.push(`JC-${jcNum} (${Math.round(ch)}m)`);
         nextSlackTarget = ch + slackIntervalMeters;
+      } else if (isFeeder && (isStart || isEnd)) {
+        curr.slackHanger = Math.max(curr.slackHanger, 1);
+        isSlackPoint = true;
+        if (isStart) {
+          nextSlackTarget = ch + slackIntervalMeters;
+        }
       } else if (isFeeder && !isStart && !isEnd) {
         if (curr.hasSlack || ch >= nextSlackTarget) {
           curr.slackHanger = Math.max(curr.slackHanger, 1);
@@ -235,6 +241,15 @@ function calculateOpname(kmzData, options = {}) {
         curr.poleClamp += clampQty;
         consecSusp = 0;
         curr.remarks.push(`Ujung ${cab.line}`);
+        if (
+          isFeeder &&
+          !curr.hasSlack &&
+          !curr.hasFDT &&
+          !curr.fatName &&
+          !curr.remarks.includes('Slack Ujung')
+        ) {
+          curr.remarks.push('Slack Ujung');
+        }
         if (isCrossing9m) {
           curr.remarks.push(`Crossing 9m (${Math.round(crossing9mDist)}m)`);
         }

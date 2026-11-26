@@ -65,7 +65,7 @@ function isFeederText(text) {
   const s = text || '';
   return (
     /(SUB\s*FEEDER|HUB\s*FEEDER|MAIN\s*FEEDER|FEEDER|UPLINK|BACKBONE)/i.test(s) ||
-    /(?:^|[^A-Z])(MFM|MF|SF|HF)(?=[^A-Z]|$)/i.test(s)
+    /(?:^|[^A-Z])(MFM|MF|SFM|SF|HF)(?=[^A-Z]|$)/i.test(s)
   );
 }
 
