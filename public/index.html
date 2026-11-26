@@ -737,6 +737,329 @@
       border: 1px solid var(--border);
     }
 
+    /* --- Sub-view Bar & Per-Tab User Guide Page --- */
+    .subview-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding: 10px 14px;
+      background: rgba(30, 41, 59, 0.72);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .subview-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .subview-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.14);
+      color: var(--primary);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      white-space: nowrap;
+    }
+
+    .subview-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .subview-switch {
+      display: inline-flex;
+      gap: 4px;
+      padding: 4px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    .subview-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .subview-btn svg {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+    }
+
+    .subview-btn:hover:not(.active) {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .subview-btn.active {
+      background: var(--surface-2);
+      color: var(--primary);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    .guide-page {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .guide-hero {
+      background:
+        linear-gradient(135deg, rgba(56, 189, 248, 0.14), rgba(30, 41, 59, 0.96) 55%),
+        var(--surface);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(2, 6, 23, 0.25);
+    }
+
+    .guide-hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .guide-hero h2 {
+      font-size: 1.2rem;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .guide-hero p {
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      max-width: 820px;
+    }
+
+    .guide-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .guide-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid var(--border);
+      color: #e2e8f0;
+    }
+
+    .guide-pill strong {
+      color: var(--primary);
+    }
+
+    .guide-card {
+      background: rgba(30, 41, 59, 0.94);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(2, 6, 23, 0.2);
+    }
+
+    .guide-card h3 {
+      font-size: 1rem;
+      color: var(--primary);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .guide-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    .guide-step {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .guide-step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.18);
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      color: var(--primary);
+      font-size: 0.85rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .guide-step h4 {
+      font-size: 0.9rem;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .guide-step p {
+      font-size: 0.83rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .guide-two-col {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 16px;
+    }
+
+    .guide-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .guide-list li {
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(51, 65, 85, 0.85);
+      border-radius: 9px;
+      padding: 10px 12px;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      line-height: 1.48;
+    }
+
+    .guide-list li strong {
+      color: var(--text);
+    }
+
+    .guide-code {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 5px;
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: #7dd3fc;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.8rem;
+    }
+
+    .guide-formula-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--primary);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: #e2e8f0;
+      line-height: 1.55;
+    }
+
+    .guide-tips {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.32);
+      border-radius: 12px;
+      padding: 16px 18px;
+    }
+
+    .guide-tips h3 {
+      font-size: 0.96rem;
+      color: #fcd34d;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .guide-tips ul {
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: #fde68a;
+    }
+
+    .guide-tips li {
+      color: #e2e8f0;
+    }
+
+    .guide-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    @media (max-width: 860px) {
+      .guide-two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .subview-bar {
+        padding: 8px 10px;
+      }
+
+      .subview-switch {
+        width: 100%;
+      }
+
+      .subview-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 8px 10px;
+      }
+
+      .guide-hero,
+      .guide-card {
+        padding: 14px;
+      }
+
+      .guide-steps {
+        grid-template-columns: 1fr;
+      }
+
+      .guide-footer button {
+        width: 100%;
+        min-height: 44px;
+      }
+    }
+
     .hidden {
       display: none;
     }
@@ -802,6 +1125,24 @@
     </div>
 
     <div id="tab-opname" class="tab-panel">
+      <div class="subview-bar">
+        <div class="subview-meta">
+          <span class="subview-badge">Tab 1</span>
+          <span class="subview-title">Opname Aksesoris &amp; Pole</span>
+        </div>
+        <div class="subview-switch" role="tablist" aria-label="Tampilan Opname Acc &amp; Pole">
+          <button type="button" class="subview-btn active" data-subview="work" aria-selected="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            <span>Alat</span>
+          </button>
+          <button type="button" class="subview-btn" data-subview="guide" aria-selected="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            <span>Cara Penggunaan</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="tab-work-view">
       <div class="card">
         <div class="upload-grid">
           <div>
@@ -899,9 +1240,125 @@
           </div>
         </div>
       </div>
+      </div>
+
+      <section class="tab-guide-view guide-page hidden" aria-label="Cara Penggunaan Opname Acc &amp; Pole">
+        <div class="guide-hero">
+          <div class="guide-hero-top">
+            <div>
+              <h2>📖 Cara Penggunaan — Opname Aksesoris &amp; Pole</h2>
+              <p>Hitung otomatis kebutuhan aksesoris tiang FTTH (Dead End, Suspension, Slack Hanger, Pole Clamp, Buldog Grip, Joint Closure), panjang Sling Wire, dan panjang Kabel dari file KMZ/KML lalu ekspor menjadi file Excel (<strong>.xlsx</strong>) siap pakai.</p>
+            </div>
+          </div>
+          <div class="guide-pills">
+            <span class="guide-pill">Input: <strong>.kmz / .kml</strong> (1 s/d 500 file)</span>
+            <span class="guide-pill">Maks. Ukuran: <strong>50 MB / file</strong></span>
+            <span class="guide-pill">Output: <strong>Opname Excel (.xlsx)</strong></span>
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <h3>🧭 Langkah-Langkah Penggunaan</h3>
+          <div class="guide-steps">
+            <div class="guide-step">
+              <span class="guide-step-num">1</span>
+              <div>
+                <h4>Unggah File KMZ / KML</h4>
+                <p>Tarik &amp; lepaskan satu atau beberapa file <span class="guide-code">.kmz</span> / <span class="guide-code">.kml</span> ke area dropzone, atau klik dropzone untuk memilih file dari perangkat Anda.</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">2</span>
+              <div>
+                <h4>Sesuaikan Aturan Perhitungan</h4>
+                <p>Pilih <strong>Jenis Jaringan</strong> (Auto, Distribusi, atau Feeder) dan atur batas sudut tikungan, maks. suspension, jarak crossing pole 9m, kapasitas hasbel, serta opsi Existing Pole.</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">3</span>
+              <div>
+                <h4>Klik "Proses &amp; Hitung"</h4>
+                <p>Sistem membaca struktur folder KMZ, menghitung aksesoris tiap tiang sepanjang jalur kabel, lalu menampilkan ringkasan KPI, jumlah pole per tipe, dan tabel detail.</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">4</span>
+              <div>
+                <h4>Filter &amp; Cek Hasil</h4>
+                <p>Gunakan kolom pencarian (berdasarkan <strong>POLE ID</strong>, tipe pole, cluster, atau remark) dan filter <strong>LINE</strong> untuk memverifikasi hasil per jalur.</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">5</span>
+              <div>
+                <h4>Download Opname (.xlsx)</h4>
+                <p>Klik tombol hijau <strong>Download Opname (.xlsx)</strong> untuk mengunduh laporan Excel berformat rapi lengkap dengan formula <span class="guide-code">SUM</span> otomatis. Jika multi-file, hasil digabung dalam satu workbook.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="guide-two-col">
+          <div class="guide-card">
+            <h3>⚙️ Penjelasan Parameter</h3>
+            <ul class="guide-list">
+              <li><strong>Jenis Jaringan / Kabel:</strong> <span class="guide-code">Auto-Deteksi</span> mengenali Distribusi vs Feeder dari nama kabel (<span class="guide-code">FEEDER</span>, <span class="guide-code">MF</span>, <span class="guide-code">SF</span>, <span class="guide-code">HF</span>, <span class="guide-code">BACKBONE</span>). Mode <strong>Distribusi</strong> menempatkan Slack di titik FDT/FAT/Slack. Mode <strong>Feeder</strong> otomatis menambah Slack di ujung kabel, tiap <strong>400 m</strong>, dan di titik <strong>JC</strong> per hasbel.</li>
+              <li><strong>Batas Sudut Tikungan Dead End (°)</strong> (default <span class="guide-code">30°</span>): Tiang dengan sudut belokan melebihi batas ini otomatis diberi <strong>2 Dead End</strong> + <strong>Pole Clamp</strong>.</li>
+              <li><strong>Maks. Suspension Berurutan</strong> (default <span class="guide-code">2</span>): Setelah jumlah Suspension berturut-turut mencapai batas, tiang berikutnya otomatis menjadi titik tarik (<strong>2 Dead End</strong> + <strong>1 Pole Clamp</strong>).</li>
+              <li><strong>Batas Jarak 2 Pole 9m (m)</strong> (default <span class="guide-code">60 m</span>): Dua tiang 9m berurutan dengan jarak kurang dari batas ini dideteksi sebagai crossing → mendapat <strong>Dead End</strong> + <strong>2 Pole Clamp</strong>.</li>
+              <li><strong>Kapasitas 1 Hasbel Feeder (m)</strong> (default <span class="guide-code">3000 m</span>): Khusus Feeder, tiap batas panjang efektif 1 hasbel (termasuk slack &amp; spare 5%) otomatis ditambahkan <strong>1 Joint Closure (JC)</strong> + <strong>1 Slack Hanger</strong> di tiang terdekat sebelumnya.</li>
+              <li><strong>Sertakan Existing Pole:</strong> Jika dicentang, tiang Existing (<span class="guide-code">EP</span> / <span class="guide-code">EPP</span>) ikut dimasukkan dalam perhitungan aksesoris kabel.</li>
+            </ul>
+          </div>
+
+          <div class="guide-card">
+            <h3>📐 Aturan Otomatis &amp; Hasil Output</h3>
+            <ul class="guide-list">
+              <li><strong>Ujung Kabel:</strong> Tiang pertama &amp; terakhir pada setiap jalur kabel otomatis mendapat <strong>1 Dead End</strong> + <strong>Pole Clamp</strong>.</li>
+              <li><strong>Titik FDT / FAT / Slack:</strong> Tiang dengan perangkat dalam radius ≤ 10 m otomatis mendapat <strong>2 Dead End</strong> + <strong>1 Slack Hanger</strong> + <strong>Pole Clamp</strong>.</li>
+              <li><strong>Jalur Sling Wire:</strong> Tiang yang dilalui jalur Sling Wire (≤ 5 m) otomatis ditambah <strong>3 Buldog Grip</strong> + <strong>1 Pole Clamp</strong>.</li>
+              <li><strong>Klasifikasi Tipe Pole:</strong> Otomatis mengelompokkan tiang seperti <span class="guide-code">NP7m2</span>, <span class="guide-code">NP7m3</span>, <span class="guide-code">NP7m4</span>, <span class="guide-code">NP9m4</span>, <span class="guide-code">EP*</span>, dan <span class="guide-code">EPP*</span>.</li>
+            </ul>
+            <div class="guide-formula-box">
+              <strong>Integrasi Antar-Tab:</strong> Setelah memproses KMZ di Tab ini, data panjang kabel &amp; FAT langsung terkirim ke Tab <strong>Hitung Potong Kabel</strong>, dan file KMZ pertama bisa langsung dipakai ulang di Tab <strong>Edit KMZ</strong>, <strong>Bersihkan KMZ</strong>, dan <strong>Split Hasbel</strong> lewat tombol <em>"Pakai KMZ dari Tab 1"</em>.
+            </div>
+          </div>
+        </div>
+
+        <div class="guide-tips">
+          <h3>💡 Tips &amp; Catatan Penting</h3>
+          <ul>
+            <li>Pastikan posisi tiang di KMZ menempel pada garis kabel (toleransi snap kabel ke tiang adalah <strong>5 meter</strong>) agar aksesoris terhitung akurat.</li>
+            <li>Untuk memproses banyak cluster sekaligus, pilih seluruh file KMZ dalam satu kali unggah — KPI dan file Excel akan otomatis menggabungkan seluruh cluster.</li>
+            <li>Periksa kolom <strong>REMARK</strong> pada tabel untuk melihat alasan pemasangan aksesoris tiap tiang (misal: <em>Tikungan 45°</em>, <em>Setelah 2 Susp</em>, <em>Crossing 9m</em>, atau <em>JC-1</em>).</li>
+          </ul>
+        </div>
+
+        <div class="guide-footer">
+          <button type="button" class="btn-primary btn-back-work">← Kembali ke Alat Opname Acc &amp; Pole</button>
+        </div>
+      </section>
     </div>
 
     <div id="tab-cutcable" class="tab-panel hidden">
+      <div class="subview-bar">
+        <div class="subview-meta">
+          <span class="subview-badge">Tab 2</span>
+          <span class="subview-title">Hitung Potong Kabel</span>
+        </div>
+        <div class="subview-switch" role="tablist" aria-label="Tampilan Hitung Potong Kabel">
+          <button type="button" class="subview-btn active" data-subview="work" aria-selected="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            <span>Alat</span>
+          </button>
+          <button type="button" class="subview-btn" data-subview="guide" aria-selected="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            <span>Cara Penggunaan</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="tab-work-view">
       <div class="card">
         <div
           style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
@@ -965,9 +1422,120 @@
           </table>
         </div>
       </div>
+      </div>
+
+      <section class="tab-guide-view guide-page hidden" aria-label="Cara Penggunaan Hitung Potong Kabel">
+        <div class="guide-hero">
+          <div class="guide-hero-top">
+            <div>
+              <h2>📖 Cara Penggunaan — Hitung Potong Kabel</h2>
+              <p>Hitung panjang potongan kabel aktual (termasuk panjang slack &amp; faktor spare) untuk setiap segmen/line secara otomatis dari data KMZ Tab 1 maupun input manual, lalu unduh rekapnya ke file <strong>CSV</strong>.</p>
+            </div>
+          </div>
+          <div class="guide-pills">
+            <span class="guide-pill">Sumber Data: <strong>Otomatis dari Tab 1</strong> atau <strong>Input Manual</strong></span>
+            <span class="guide-pill">Perhitungan: <strong>Real-time</strong></span>
+            <span class="guide-pill">Output: <strong>Kabel_Potongan.csv</strong></span>
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <h3>🧭 Langkah-Langkah Penggunaan</h3>
+          <div class="guide-steps">
+            <div class="guide-step">
+              <span class="guide-step-num">1</span>
+              <div>
+                <h4>Muat Data KMZ atau Tambah Manual</h4>
+                <p>Proses file KMZ di Tab <strong>Opname Acc &amp; Pole</strong> agar tabel terisi otomatis. Jika ingin menghitung tanpa KMZ, klik tombol <strong>+ Tambah Line Manual</strong>.</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">2</span>
+              <div>
+                <h4>Atur Nilai Default Global (Opsional)</h4>
+                <p>Masukkan <strong>Panjang Slack Default (m)</strong> (standar <span class="guide-code">20 m</span>) dan <strong>Faktor Pengali Default</strong> (standar <span class="guide-code">1.05</span> = spare +5%), lalu klik <strong>Terapkan ke Semua Line</strong>.</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">3</span>
+              <div>
+                <h4>Sesuaikan Nilai per Baris</h4>
+                <p>Semua kolom di tabel (Line, Nama Kabel, Tipe Kabel, Panjang Rute, Jumlah FAT/Slack, Panjang Slack, dan Faktor) bisa diedit langsung. Hasil <strong>Kabel Potong (m)</strong> &amp; KPI total otomatis diperbarui.</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">4</span>
+              <div>
+                <h4>Reset atau Hapus Baris</h4>
+                <p>Klik <strong>Reset ke Data KMZ</strong> untuk mengembalikan seluruh baris ke nilai asli dari KMZ Tab 1, atau klik <strong>Hapus</strong> untuk membuang baris tertentu.</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">5</span>
+              <div>
+                <h4>Download CSV</h4>
+                <p>Klik <strong>Download CSV</strong> untuk mengunduh laporan <span class="guide-code">Kabel_Potongan.csv</span> yang sudah memuat panjang eksak (2 desimal) dan pembulatan ke atas.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="guide-two-col">
+          <div class="guide-card">
+            <h3>🧮 Rumus Perhitungan</h3>
+            <div class="guide-formula-box" style="margin-top:0;">
+              <strong>Kabel Potong (m)</strong> = <span class="guide-code">(Panjang Rute + ((Jumlah FAT/Slack + 1) × Panjang Slack)) × Faktor</span>
+            </div>
+            <ul class="guide-list" style="margin-top:12px;">
+              <li><strong>Tambahan +1 Slack:</strong> Menghitung 1 titik slack ekstra untuk terminasi/ujung kabel di luar jumlah FAT atau slack tengah.</li>
+              <li><strong>Tipe Distribusi (FAT):</strong> Nilai <em>Jumlah FAT/Slack</em> diambil otomatis dari jumlah titik FAT pada line terkait di file KMZ.</li>
+              <li><strong>Tipe Feeder / SF / MF / HF:</strong> Nilai <em>Jumlah Slack</em> otomatis dihitung dengan rumus <span class="guide-code">⌈Panjang Rute / 400⌉</span> (dibulatkan ke atas tiap kelipatan 400 meter).</li>
+            </ul>
+          </div>
+
+          <div class="guide-card">
+            <h3>⚙️ Fitur Pintar Tabel</h3>
+            <ul class="guide-list">
+              <li><strong>Auto-Deteksi Tipe Kabel:</strong> Mengetik kata kunci seperti <span class="guide-code">FEEDER</span>, <span class="guide-code">MF</span>, <span class="guide-code">SF</span>, <span class="guide-code">HF</span>, atau <span class="guide-code">SUBFEEDER</span> pada kolom Nama Kabel otomatis mengubah tipe menjadi <em>Feeder</em> dan menghitung ulang jumlah slack.</li>
+              <li><strong>Update Otomatis Rute Feeder:</strong> Pada baris bertipe <em>Feeder</em>, mengubah angka Panjang Rute otomatis memperbarui kolom Jumlah Slack.</li>
+              <li><strong>Ringkasan KPI &amp; Pembulatan:</strong> Kartu KPI di atas tabel menampilkan total seluruh line beserta total pembulatan atas (<span class="guide-code">Math.ceil</span>) untuk kebutuhan order material.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="guide-tips">
+          <h3>💡 Tips &amp; Catatan Penting</h3>
+          <ul>
+            <li>Jika Anda sudah mengunggah file di Tab 1 tetapi belum menekan <em>Proses &amp; Hitung</em>, membuka Tab 2 akan otomatis memicu pemrosesan agar tabel langsung terisi.</li>
+            <li>Gunakan <strong>Faktor Pengali</strong> <span class="guide-code">1.05</span> untuk spare 5%, <span class="guide-code">1.10</span> untuk spare 10%, atau <span class="guide-code">1.00</span> jika tidak ingin menambahkan spare.</li>
+          </ul>
+        </div>
+
+        <div class="guide-footer">
+          <button type="button" class="btn-primary btn-back-work">← Kembali ke Alat Hitung Potong Kabel</button>
+        </div>
+      </section>
     </div>
 
     <div id="tab-editkmz" class="tab-panel hidden">
+      <div class="subview-bar">
+        <div class="subview-meta">
+          <span class="subview-badge">Tab 3</span>
+          <span class="subview-title">Edit KMZ (Jalur MF)</span>
+        </div>
+        <div class="subview-switch" role="tablist" aria-label="Tampilan Edit KMZ Jalur MF">
+          <button type="button" class="subview-btn active" data-subview="work" aria-selected="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            <span>Alat</span>
+          </button>
+          <button type="button" class="subview-btn" data-subview="guide" aria-selected="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            <span>Cara Penggunaan</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="tab-work-view">
       <div class="card">
         <div
           style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
@@ -1048,9 +1616,123 @@
           </div>
         </div>
       </div>
+      </div>
+
+      <section class="tab-guide-view guide-page hidden" aria-label="Cara Penggunaan Edit KMZ Jalur MF">
+        <div class="guide-hero">
+          <div class="guide-hero-top">
+            <div>
+              <h2>📖 Cara Penggunaan — Edit KMZ (Jalur MF)</h2>
+              <p>Otomatisasi pemindahan folder dan penyesuaian warna/style tiang di dalam file KMZ berdasarkan persinggungan jarak terhadap jalur kabel Main Feeder (MF) atau jalur kabel Cluster — tanpa perlu mengedit tiang satu per satu di Google Earth.</p>
+            </div>
+          </div>
+          <div class="guide-pills">
+            <span class="guide-pill">Mode 1: <strong>Upgrade Pole 2.5"/3" → 4"</strong></span>
+            <span class="guide-pill">Mode 2: <strong>Pole MF Bersilangan → Putih</strong></span>
+            <span class="guide-pill">Output: <strong>File .kmz Siap Buka</strong></span>
+          </div>
+        </div>
+
+        <div class="guide-two-col">
+          <div class="guide-card">
+            <h3>🔀 Pilihan Mode Kerja</h3>
+            <ul class="guide-list">
+              <li>
+                <strong>Mode 1 — Cluster + Jalur MF → Upgrade Pole 4":</strong><br />
+                Memindahkan tiang <span class="guide-code">NEW POLE 7-2.5</span> dan <span class="guide-code">NEW POLE 7-3</span> pada KMZ Cluster yang dilalui jalur kabel MF (jarak ≤ toleransi) ke folder <span class="guide-code">NEW POLE 7-4</span> serta menyesuaikan style/warnanya. Output: <span class="guide-code">*_EDITED_MF.kmz</span>.
+              </li>
+              <li>
+                <strong>Mode 2 — Pole MF + KMZ Cluster → Pole Putih (Bersilangan):</strong><br />
+                Mengecek tiang di KMZ Main Feeder (MF) yang bersilangan dengan jalur kabel pada <strong>1 atau beberapa file KMZ Cluster</strong> sekaligus. Tiang yang bersilangan dipindahkan ke folder <span class="guide-code">POLE CLUSTER</span> dan diubah warnanya menjadi putih (<span class="guide-code">#ffffff</span>). Output: <span class="guide-code">*_MF_WHITE.kmz</span>.
+              </li>
+            </ul>
+          </div>
+
+          <div class="guide-card">
+            <h3>⚙️ Penjelasan Parameter</h3>
+            <ul class="guide-list">
+              <li><strong>Toleransi Jarak (meter)</strong> (default <span class="guide-code">5 m</span>): Jarak tegak lurus maksimum antara titik tiang dan garis <span class="guide-code">LineString</span> pembanding agar tiang dianggap dilalui/bersilangan.</li>
+              <li><strong>Warna Pole &amp; "Paksa pakai warna ini":</strong> Pada Mode 1, sistem otomatis menyalin style dari folder <span class="guide-code">NEW POLE 7-4</span> yang sudah ada. Warna pemilih hanya dipakai jika folder 7-4 kosong atau jika checkbox <strong>Paksa pakai warna ini</strong> dicentang. Pada Mode 2, warna yang dipilih selalu diterapkan.</li>
+              <li><strong>Pakai KMZ dari Tab 1:</strong> Pintasan untuk langsung memakai file KMZ dari Tab 1 sebagai <em>KMZ Awal</em> (kotak 1).</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <h3>🧭 Langkah-Langkah Penggunaan</h3>
+          <div class="guide-steps">
+            <div class="guide-step">
+              <span class="guide-step-num">1</span>
+              <div>
+                <h4>Pilih Mode Edit</h4>
+                <p>Klik tombol <strong>Mode 1</strong> (Upgrade Pole Cluster ke 4") atau <strong>Mode 2</strong> (Ubah Pole MF bersilangan menjadi putih) sesuai kebutuhan.</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">2</span>
+              <div>
+                <h4>Unggah KMZ Awal (Kotak 1)</h4>
+                <p>Masukkan file KMZ yang tiangnya akan diedit (KMZ Cluster untuk Mode 1, atau KMZ Pole MF untuk Mode 2).</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">3</span>
+              <div>
+                <h4>Unggah KMZ Pembanding (Kotak 2)</h4>
+                <p>Masukkan file KMZ berisi jalur garis kabel referensi (Jalur MF untuk Mode 1, atau satu/banyak KMZ Cluster untuk Mode 2).</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">4</span>
+              <div>
+                <h4>Preview Perubahan</h4>
+                <p>Atur toleransi jarak &amp; warna bila perlu, lalu klik <strong>Preview Perubahan</strong> untuk mengecek daftar POLE ID, folder asal → tujuan, serta jarak aktualnya (m).</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">5</span>
+              <div>
+                <h4>Download KMZ Hasil Edit</h4>
+                <p>Jika daftar perubahan sudah sesuai, klik <strong>Download KMZ Hasil Edit</strong> lalu buka file hasilnya di Google Earth untuk verifikasi visual.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="guide-tips">
+          <h3>💡 Tips &amp; Catatan Penting</h3>
+          <ul>
+            <li>Pada <strong>Mode 2</strong>, garis yang berada di dalam folder <span class="guide-code">BOUNDARY</span> dan <span class="guide-code">DROP</span> di KMZ Cluster otomatis diabaikan agar hanya jalur kabel distribusi utama yang dipakai sebagai referensi persilangan.</li>
+            <li>Jika ada tiang yang seharusnya berubah tetapi belum terdeteksi, coba naikkan <strong>Toleransi Jarak</strong> secara bertahap (misal dari <span class="guide-code">5 m</span> ke <span class="guide-code">8 m</span> atau <span class="guide-code">10 m</span>) lalu klik <em>Preview Perubahan</em> kembali.</li>
+            <li>File KMZ asli Anda tidak akan tertimpa — hasil unduhan selalu diberi akhiran nama baru (<span class="guide-code">_EDITED_MF.kmz</span> atau <span class="guide-code">_MF_WHITE.kmz</span>).</li>
+          </ul>
+        </div>
+
+        <div class="guide-footer">
+          <button type="button" class="btn-primary btn-back-work">← Kembali ke Alat Edit KMZ (Jalur MF)</button>
+        </div>
+      </section>
     </div>
 
     <div id="tab-cleankmz" class="tab-panel hidden">
+      <div class="subview-bar">
+        <div class="subview-meta">
+          <span class="subview-badge">Tab 4</span>
+          <span class="subview-title">Bersihkan KMZ (Filter Item)</span>
+        </div>
+        <div class="subview-switch" role="tablist" aria-label="Tampilan Bersihkan KMZ">
+          <button type="button" class="subview-btn active" data-subview="work" aria-selected="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            <span>Alat</span>
+          </button>
+          <button type="button" class="subview-btn" data-subview="guide" aria-selected="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            <span>Cara Penggunaan</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="tab-work-view">
       <div class="card">
         <div
           style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
@@ -1130,9 +1812,116 @@
           </div>
         </div>
       </div>
+      </div>
+
+      <section class="tab-guide-view guide-page hidden" aria-label="Cara Penggunaan Bersihkan KMZ">
+        <div class="guide-hero">
+          <div class="guide-hero-top">
+            <div>
+              <h2>📖 Cara Penggunaan — Bersihkan KMZ (Filter Item)</h2>
+              <p>Hapus permanen atau sembunyikan folder-folder berat/non-esensial seperti Boundary, Homepass, dan Slack Hanger dari file KMZ/KML agar ukuran file jauh lebih ringan dan peta lebih cepat dibuka di Google Earth maupun perangkat lapangan.</p>
+            </div>
+          </div>
+          <div class="guide-pills">
+            <span class="guide-pill">Input: <strong>1 File .kmz / .kml</strong></span>
+            <span class="guide-pill">Aksi: <strong>Hapus Permanen</strong> atau <strong>Sembunyikan</strong></span>
+            <span class="guide-pill">Output: <strong>*_CLEAN.kmz / .kml</strong></span>
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <h3>🧭 Langkah-Langkah Penggunaan</h3>
+          <div class="guide-steps">
+            <div class="guide-step">
+              <span class="guide-step-num">1</span>
+              <div>
+                <h4>Unggah File KMZ / KML</h4>
+                <p>Tarik &amp; lepaskan file ke dropzone, klik untuk memilih dari perangkat, atau klik <strong>Pakai KMZ dari Tab 1</strong> jika sudah mengunggah di Tab 1.</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">2</span>
+              <div>
+                <h4>Centang Kategori Target</h4>
+                <p>Pilih folder yang ingin diproses (minimal 1 dicentang): <span class="guide-code">BOUNDARY CLUSTER</span>, <span class="guide-code">BOUNDARY FAT</span>, <span class="guide-code">HP COVER</span>, <span class="guide-code">HP UNCOVER</span>, dan/atau <span class="guide-code">SLACK HANGER</span>.</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">3</span>
+              <div>
+                <h4>Pilih Aksi &amp; Format Output</h4>
+                <p>Tentukan apakah item akan <strong>Dihapus Permanen</strong> (meringankan ukuran file) atau <strong>Disembunyikan</strong> (<span class="guide-code">visibility=0</span>), lalu pilih output <span class="guide-code">.kmz</span> atau <span class="guide-code">.kml</span>.</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">4</span>
+              <div>
+                <h4>Preview Pengurangan</h4>
+                <p>Klik <strong>Preview Pengurangan</strong> untuk melihat jumlah folder &amp; placemark yang terdampak serta perbandingan ukuran awal vs ukuran hasil (KB &amp; % penghematan).</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">5</span>
+              <div>
+                <h4>Download Hasil</h4>
+                <p>Klik tombol hijau <strong>Download Hasil</strong> untuk menyimpan file bersih (<span class="guide-code">*_CLEAN.kmz</span> atau <span class="guide-code">*_CLEAN.kml</span>).</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="guide-two-col">
+          <div class="guide-card">
+            <h3>🗂️ Perbedaan Aksi</h3>
+            <ul class="guide-list">
+              <li><strong>Hapus Permanen (Ringankan File):</strong> Menghapus folder target beserta seluruh placemark di dalamnya secara permanen dari struktur KML. Sangat cocok untuk memperkecil ukuran file secara drastis sebelum dikirim ke tim lapangan atau dibuka di HP.</li>
+              <li><strong>Sembunyikan (visibility=0):</strong> Folder dan placemark tetap disimpan di dalam file, namun properti <span class="guide-code">&lt;visibility&gt;0&lt;/visibility&gt;</span> diterapkan sehingga otomatis tidak tercentang saat dibuka di Google Earth dan tetap bisa dinyalakan kembali kapan saja.</li>
+            </ul>
+          </div>
+
+          <div class="guide-card">
+            <h3>📦 Format Output</h3>
+            <ul class="guide-list">
+              <li><strong>KMZ (.kmz):</strong> Format terkompresi ZIP (direkomendasikan). Ukuran file jauh lebih kecil dan mempertahankan aset ikon/gambar bawaan di dalam KMZ asal.</li>
+              <li><strong>KML (.kml):</strong> Format XML teks mentah tanpa kompresi. Cocok bila file akan diimpor ke tool GIS/skrip tertentu yang hanya menerima KML.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="guide-tips">
+          <h3>💡 Tips &amp; Catatan Penting</h3>
+          <ul>
+            <li>Pencocokan nama folder bersifat tidak peka huruf besar/kecil (misal <span class="guide-code">HP COVER</span> maupun <span class="guide-code">hp cover</span> sama-sama terdeteksi).</li>
+            <li>Jika suatu kategori berstatus <em>Tidak ditemukan</em> di tabel preview, artinya tidak ada folder dengan nama tersebut di dalam file KMZ sumber.</li>
+            <li>Pastikan minimal 1 kotak centang kategori aktif sebelum menekan <em>Preview Pengurangan</em> atau <em>Download Hasil</em>.</li>
+          </ul>
+        </div>
+
+        <div class="guide-footer">
+          <button type="button" class="btn-primary btn-back-work">← Kembali ke Alat Bersihkan KMZ</button>
+        </div>
+      </section>
     </div>
 
     <div id="tab-batchcsv" class="tab-panel hidden">
+      <div class="subview-bar">
+        <div class="subview-meta">
+          <span class="subview-badge">Tab 5</span>
+          <span class="subview-title">Batch Summary → CSV</span>
+        </div>
+        <div class="subview-switch" role="tablist" aria-label="Tampilan Batch Summary CSV">
+          <button type="button" class="subview-btn active" data-subview="work" aria-selected="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            <span>Alat</span>
+          </button>
+          <button type="button" class="subview-btn" data-subview="guide" aria-selected="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            <span>Cara Penggunaan</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="tab-work-view">
       <div class="card">
         <div style="margin-bottom:14px;">
           <h2 style="font-size:1.15rem;">Batch Summary KMZ → CSV (Multi-File)</h2>
@@ -1183,9 +1972,103 @@
           </div>
         </div>
       </div>
+      </div>
+
+      <section class="tab-guide-view guide-page hidden" aria-label="Cara Penggunaan Batch Summary CSV">
+        <div class="guide-hero">
+          <div class="guide-hero-top">
+            <div>
+              <h2>📖 Cara Penggunaan — Batch Summary → CSV</h2>
+              <p>Rekap satu atau ratusan file KMZ/KML cluster sekaligus menjadi satu tabel ringkasan terstruktur (Pole, FDT, Segment/Line, Jenis Kabel, Panjang Rute, dan Jumlah FAT) dan ekspor ke satu file <strong>CSV</strong> untuk laporan maupun olah data di Excel.</p>
+            </div>
+          </div>
+          <div class="guide-pills">
+            <span class="guide-pill">Input: <strong>Multi-file .kmz / .kml</strong> (maks. 500 file)</span>
+            <span class="guide-pill">Maks. Ukuran: <strong>50 MB / file</strong></span>
+            <span class="guide-pill">Output: <strong>Summary_Batch_KMZ.csv</strong></span>
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <h3>🧭 Langkah-Langkah Penggunaan</h3>
+          <div class="guide-steps">
+            <div class="guide-step">
+              <span class="guide-step-num">1</span>
+              <div>
+                <h4>Pilih Banyak File KMZ / KML</h4>
+                <p>Tarik &amp; lepaskan sekaligus seluruh file KMZ/KML cluster ke area dropzone, atau klik dropzone lalu blok banyak file (mendukung hingga <strong>500 file</strong> sekaligus).</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">2</span>
+              <div>
+                <h4>Klik "Preview Summary"</h4>
+                <p>Sistem mem-parsing seluruh file secara berurutan lalu menampilkan KPI agregat (Total Cluster, Total Pole, Total FDT, Total Line, dan Total FAT) beserta tabel pratinjau per line.</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">3</span>
+              <div>
+                <h4>Download Summary (.csv)</h4>
+                <p>Klik <strong>Download Summary (.csv)</strong> untuk mengunduh file <span class="guide-code">Summary_Batch_KMZ.csv</span> yang siap dibuka di Microsoft Excel atau Google Sheets.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="guide-two-col">
+          <div class="guide-card">
+            <h3>📊 Kolom Data yang Direkap</h3>
+            <ul class="guide-list">
+              <li><strong>Identitas Cluster &amp; Pole:</strong> Nama Cluster, Total Pole, Pole New, Pole Existing — dan khusus pada file CSV juga mencakup rincian per tipe tiang (<span class="guide-code">NP7m2</span>, <span class="guide-code">NP7m3</span>, <span class="guide-code">NP7m4</span>, <span class="guide-code">NP9m4</span>).</li>
+              <li><strong>FDT &amp; Segment / Line:</strong> Jumlah FDT, FDT ID yang terhubung dengan kabel, jumlah Segment per FDT (<span class="guide-code">SEG/FDT</span>), serta nama Segment/Line.</li>
+              <li><strong>Kabel &amp; FAT:</strong> Jenis Kabel (deteksi otomatis jumlah core, misal <span class="guide-code">ADSS 24C</span>, <span class="guide-code">ADSS 36C</span>, <span class="guide-code">Feeder 48C</span>), Panjang Rute 2D (meter), dan Jumlah FAT per Segment.</li>
+            </ul>
+          </div>
+
+          <div class="guide-card">
+            <h3>🔍 Cara Deteksi Otomatis</h3>
+            <ul class="guide-list">
+              <li><strong>Pencocokan Kabel ↔ FDT:</strong> Dicocokkan berdasarkan nama FDT yang terkandung pada nama kabel. Jika hanya ada 1 FDT dalam cluster, otomatis ditautkan ke FDT tersebut.</li>
+              <li><strong>Pencocokan FAT ↔ Segment:</strong> Prioritas 1 menggunakan nama folder Line; Prioritas 2 mencocokkan kode segmen (<span class="guide-code">S01</span>, <span class="guide-code">S02</span>, dst.) &amp; prefix FDT; Prioritas 3 menggunakan jarak geografis terdekat ke kabel.</li>
+              <li><strong>Cluster Tanpa Kabel:</strong> Jika sebuah file KMZ tidak memiliki LineString kabel, cluster tetap masuk ke ringkasan dengan jumlah pole dan FDT/FAT terdata.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="guide-tips">
+          <h3>💡 Tips &amp; Catatan Penting</h3>
+          <ul>
+            <li>Anda bisa langsung menekan <strong>Download Summary (.csv)</strong> tanpa harus menekan <em>Preview Summary</em> terlebih dahulu bila ingin cepat mengekspor ratusan file.</li>
+            <li>Saat membuka <span class="guide-code">Summary_Batch_KMZ.csv</span> di Excel, jika pemisah kolom tidak otomatis terpisah (setting regional koma/titik koma), gunakan menu <em>Data → From Text/CSV</em> dengan delimiter <strong>Comma (,)</strong> dan encoding <strong>UTF-8</strong>.</li>
+          </ul>
+        </div>
+
+        <div class="guide-footer">
+          <button type="button" class="btn-primary btn-back-work">← Kembali ke Alat Batch Summary → CSV</button>
+        </div>
+      </section>
     </div>
 
     <div id="tab-splitkmz" class="tab-panel hidden">
+      <div class="subview-bar">
+        <div class="subview-meta">
+          <span class="subview-badge">Tab 6</span>
+          <span class="subview-title">Line Parser (Split Hasbel)</span>
+        </div>
+        <div class="subview-switch" role="tablist" aria-label="Tampilan Line Parser Split Hasbel">
+          <button type="button" class="subview-btn active" data-subview="work" aria-selected="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            <span>Alat</span>
+          </button>
+          <button type="button" class="subview-btn" data-subview="guide" aria-selected="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            <span>Cara Penggunaan</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="tab-work-view">
       <div class="card">
         <div
           style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
@@ -1273,6 +2156,94 @@
           </div>
         </div>
       </div>
+      </div>
+
+      <section class="tab-guide-view guide-page hidden" aria-label="Cara Penggunaan Line Parser Split Hasbel">
+        <div class="guide-hero">
+          <div class="guide-hero-top">
+            <div>
+              <h2>📖 Cara Penggunaan — Line Parser (Split Hasbel)</h2>
+              <p>Pecah jalur kabel feeder panjang secara otomatis menjadi segmen-segmen per 1 hasbel (default <strong>3.000 m</strong> efektif termasuk slack &amp; spare), lengkap dengan peletakan titik <strong>Joint Closure (JC)</strong> dan titik <strong>Slack (per 400 m)</strong> yang menempel ke tiang terdekat.</p>
+            </div>
+          </div>
+          <div class="guide-pills">
+            <span class="guide-pill">Input: <strong>1 File .kmz / .kml</strong></span>
+            <span class="guide-pill">Standar: <strong>3.000 m / Hasbel</strong> (Slack 20m/400m + Spare 5%)</span>
+            <span class="guide-pill">Output: <strong>*_HASBEL.kmz / .kml / .csv</strong></span>
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <h3>🧭 Langkah-Langkah Penggunaan</h3>
+          <div class="guide-steps">
+            <div class="guide-step">
+              <span class="guide-step-num">1</span>
+              <div>
+                <h4>Unggah KMZ / KML Jalur Feeder</h4>
+                <p>Tarik &amp; lepaskan file berisi jalur kabel (<span class="guide-code">LineString</span>) dan tiang, klik dropzone, atau klik <strong>Pakai KMZ dari Tab 1</strong>.</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">2</span>
+              <div>
+                <h4>Atur Parameter Split Hasbel</h4>
+                <p>Sesuaikan <strong>Kapasitas 1 Hasbel</strong> (<span class="guide-code">3000 m</span>), <strong>Spare</strong> (<span class="guide-code">5%</span>), <strong>Panjang Slack</strong> (<span class="guide-code">20 m</span>), <strong>Interval Slack</strong> (<span class="guide-code">400 m</span>), dan centang opsi <strong>Snap ke Pole terdekat</strong>.</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">3</span>
+              <div>
+                <h4>Proses &amp; Preview Hasbel</h4>
+                <p>Klik <strong>Proses &amp; Preview Hasbel</strong> untuk melihat total hasbel, jumlah Joint Closure (JC), warna tiap segmen, chainage <span class="guide-code">Start–End</span>, tiang awal/akhir/JC, dan lokasi tiap titik slack.</p>
+              </div>
+            </div>
+            <div class="guide-step">
+              <span class="guide-step-num">4</span>
+              <div>
+                <h4>Download KMZ/KML atau CSV</h4>
+                <p>Pilih format <span class="guide-code">.KMZ</span> / <span class="guide-code">.KML</span> lalu klik <strong>Download KMZ/KML</strong> untuk visualisasi peta berwarna di Google Earth, atau klik <strong>Download CSV</strong> untuk rekap tabel hasbel.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="guide-two-col">
+          <div class="guide-card">
+            <h3>⚙️ Penjelasan Parameter</h3>
+            <ul class="guide-list">
+              <li><strong>Kapasitas 1 Hasbel (m)</strong> (default <span class="guide-code">3000 m</span>): Batas maksimum panjang kabel efektif dalam 1 gulungan/drum hasbel.</li>
+              <li><strong>Spare (%)</strong> (default <span class="guide-code">5%</span>): Persentase cadangan kabel untuk kelonggaran tarikan/sagging antar tiang.</li>
+              <li><strong>Panjang Slack (m)</strong> (default <span class="guide-code">20 m</span>) &amp; <strong>Interval Slack (m)</strong> (default <span class="guide-code">400 m</span>): Penambahan cadangan gulungan slack di sepanjang jalur dan 1 slack ekstra di ujung/titik JC.</li>
+              <li><strong>Snap titik potong (JC) &amp; Slack ke Pole terdekat:</strong> Jika dicentang, sistem mencari tiang di sepanjang jalur (radius ≤ 10 m) sehingga pemotongan JC jatuh tepat di tiang terakhir sebelum melewati batas 1 hasbel, dan tiap titik Slack menempel pada tiang terdekat.</li>
+            </ul>
+          </div>
+
+          <div class="guide-card">
+            <h3>🧮 Rumus &amp; Isi File Output</h3>
+            <div class="guide-formula-box" style="margin-top:0;">
+              <strong>Jumlah Slack</strong> = <span class="guide-code">⌊Panjang Rute / Interval Slack⌋ + 1</span><br />
+              <strong>Total (+Spare)</strong> = <span class="guide-code">(Panjang Rute + (Jumlah Slack × Panjang Slack)) × (1 + Spare% / 100)</span>
+            </div>
+            <ul class="guide-list" style="margin-top:12px;">
+              <li><strong>Output KMZ / KML:</strong> Setiap segmen hasbel diberi <strong>warna berbeda</strong> (Biru Langit, Hijau, Kuning, Oranye, Magenta, Ungu, Merah, Tosca) dilengkapi placemark titik <strong>Joint Closure (JC)</strong> dan <strong>Slack</strong>.</li>
+              <li><strong>Output CSV:</strong> Berisi tabel lengkap nomor hasbel, chainage start–end, panjang rute, jumlah slack, total kabel efektif (+spare &amp; pembulatan atas), pole awal, pole akhir/JC, serta daftar pole lokasi slack.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="guide-tips">
+          <h3>💡 Tips &amp; Catatan Penting</h3>
+          <ul>
+            <li>Agar fitur <strong>Snap ke Pole</strong> bekerja optimal, pastikan file KMZ memuat folder tiang (Pole) yang posisinya berada dalam jarak ≤ <strong>10 meter</strong> dari garis jalur kabel feeder.</li>
+            <li>Jika file hanya berisi garis rute tanpa titik pole (atau opsi Snap dimatikan), titik potong JC dan Slack tetap dihitung berdasarkan koordinat interpolasi chainage di sepanjang jalur.</li>
+            <li>Nilai panjang total efektif tiap hasbel selalu dijaga <strong>≤ Kapasitas 1 Hasbel</strong> agar tidak ada tarikan yang kekurangan kabel di lapangan.</li>
+          </ul>
+        </div>
+
+        <div class="guide-footer">
+          <button type="button" class="btn-primary btn-back-work">← Kembali ke Alat Line Parser (Split Hasbel)</button>
+        </div>
+      </section>
     </div>
   </div>
 
@@ -1536,6 +2507,12 @@
       if (syncUrl && window.history && window.history.replaceState) {
         const url = new URL(window.location.href);
         url.searchParams.set('tab', target);
+        const activePanel = document.getElementById(`tab-${target}`);
+        if (activePanel && activePanel.dataset.subview === 'guide') {
+          url.searchParams.set('view', 'guide');
+        } else {
+          url.searchParams.delete('view');
+        }
         window.history.replaceState({}, '', url);
       }
       if (scrollTop && window.innerWidth <= 768) {
@@ -1553,9 +2530,60 @@
       btn.addEventListener('click', () => activateTab(btn.dataset.tab, { scrollTop: true }));
     });
 
-    const initialTab = new URLSearchParams(window.location.search).get('tab');
+    function setTabSubview(panel, view = 'work', { syncUrl = true, scrollTop = false } = {}) {
+      if (!panel) return;
+      const targetView = view === 'guide' ? 'guide' : 'work';
+      const workEl = panel.querySelector('.tab-work-view');
+      const guideEl = panel.querySelector('.tab-guide-view');
+      if (workEl) workEl.classList.toggle('hidden', targetView === 'guide');
+      if (guideEl) guideEl.classList.toggle('hidden', targetView !== 'guide');
+      panel.dataset.subview = targetView;
+
+      panel.querySelectorAll('.subview-btn').forEach((btn) => {
+        const isActive = btn.dataset.subview === targetView;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-selected', String(isActive));
+      });
+
+      if (syncUrl && window.history && window.history.replaceState) {
+        const url = new URL(window.location.href);
+        if (targetView === 'guide') {
+          url.searchParams.set('view', 'guide');
+        } else {
+          url.searchParams.delete('view');
+        }
+        window.history.replaceState({}, '', url);
+      }
+
+      if (scrollTop) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    tabPanels.forEach((panel) => {
+      panel.dataset.subview = 'work';
+      panel.querySelectorAll('.subview-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          setTabSubview(panel, btn.dataset.subview, { syncUrl: true });
+        });
+      });
+      const backBtn = panel.querySelector('.btn-back-work');
+      if (backBtn) {
+        backBtn.addEventListener('click', () => {
+          setTabSubview(panel, 'work', { syncUrl: true, scrollTop: true });
+        });
+      }
+    });
+
+    const initialParams = new URLSearchParams(window.location.search);
+    const initialTab = initialParams.get('tab');
+    const initialView = initialParams.get('view');
     if (initialTab && validTabs.has(initialTab)) {
       activateTab(initialTab, { syncUrl: false });
+    }
+    if (initialView === 'guide') {
+      const activePanel = document.getElementById(`tab-${initialTab && validTabs.has(initialTab) ? initialTab : 'opname'}`);
+      setTabSubview(activePanel, 'guide', { syncUrl: false });
     }
 
     // --- PWA Install Prompt, Offline Status & Service Worker ---
