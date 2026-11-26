@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
   <title>KMZPro — Automasi FTTH &amp; Toolkit KMZ</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <style>
@@ -284,9 +285,122 @@
 
     .table-wrap {
       overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
       max-height: 540px;
       border: 1px solid var(--border);
       border-radius: 8px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 12px;
+        overflow-x: hidden;
+      }
+
+      header {
+        margin-bottom: 14px;
+        padding-bottom: 12px;
+      }
+
+      header img {
+        width: 38px !important;
+        height: 38px !important;
+      }
+
+      header h1 {
+        font-size: 1.2rem;
+      }
+
+      header p {
+        font-size: 0.78rem;
+      }
+
+      .card {
+        padding: 14px;
+        margin-bottom: 14px;
+        border-radius: 10px;
+      }
+
+      .tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        gap: 6px;
+        margin-bottom: 14px;
+        padding-bottom: 8px;
+      }
+
+      .tab-btn {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        padding: 8px 12px;
+        font-size: 0.82rem;
+      }
+
+      .dropzone {
+        padding: 20px 14px;
+        font-size: 0.88rem;
+      }
+
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .actions button {
+        width: 100%;
+        min-height: 44px;
+      }
+
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+
+      .kpi {
+        padding: 10px 12px;
+      }
+
+      .kpi .value {
+        font-size: 1.22rem;
+      }
+
+      .toolbar-left {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .toolbar input,
+      .toolbar select {
+        max-width: 100%;
+        width: 100%;
+      }
+
+      .form-group input[type="number"],
+      .form-group select,
+      .toolbar input,
+      .toolbar select {
+        font-size: 16px;
+      }
+
+      .table-wrap {
+        max-height: 60vh;
+      }
     }
 
     table {
@@ -615,7 +729,7 @@
           <button id="btnUseTab1Kmz" class="btn-secondary" disabled>Pakai KMZ dari Tab 1</button>
         </div>
 
-        <div class="upload-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 16px;">
+        <div class="upload-grid grid-2" style="margin-bottom: 16px;">
           <div id="baseKmzDropzone" class="dropzone" style="padding:24px 16px;">
             <div>📂 <strong>1. KMZ Awal</strong> (.kmz / .kml)</div>
             <div style="font-size:0.8rem; color:var(--muted);">Tarik &amp; lepaskan atau klik untuk memilih</div>
@@ -699,7 +813,7 @@
 
           <div class="options-box">
             <h3>Item yang Dihapus / Disembunyikan</h3>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;">
+            <div class="grid-2" style="gap:8px; margin-bottom:14px;">
               <label class="checkbox-row" style="margin-top:0;"><input type="checkbox" class="clean-target"
                   value="BOUNDARY CLUSTER" checked /> BOUNDARY CLUSTER</label>
               <label class="checkbox-row" style="margin-top:0;"><input type="checkbox" class="clean-target"
@@ -712,7 +826,7 @@
                   value="SLACK HANGER" checked /> SLACK HANGER</label>
             </div>
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div class="grid-2">
               <div class="form-group" style="margin-bottom:0;">
                 <label for="cleanMode">Aksi</label>
                 <select id="cleanMode">
@@ -834,7 +948,7 @@
 
           <div class="options-box">
             <h3>Parameter Split Hasbel</h3>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div class="grid-2">
               <div class="form-group" style="margin-bottom:0;">
                 <label for="splitMaxHasbel">Kapasitas 1 Hasbel (m)</label>
                 <input type="number" id="splitMaxHasbel" value="3000" min="100" step="50" />

@@ -5,5 +5,19 @@
       "source": "/api/(.*)",
       "destination": "/api/index.js"
     }
+  ],
+  "headers": [
+    {
+      "source": "/(.*\\.svg)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }
+      ]
+    },
+    {
+      "source": "/",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=300, stale-while-revalidate=86400" }
+      ]
+    }
   ]
 }

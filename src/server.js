@@ -3,11 +3,6 @@ const multer = require('multer');
 const path = require('path');
 const { parseKmzBuffer } = require('./kmzParser');
 const { calculateOpname } = require('./opnameCalculator');
-const { buildOpnameWorkbookBuffer, buildMultiOpnameWorkbookBuffer } = require('./excelExporter');
-const { editKmzForMf } = require('./kmzMfEditor');
-const { cleanKmzBuffer } = require('./kmzCleaner');
-const { processBatchKmzToCsv } = require('./batchCsvExporter');
-const { splitKmzLinesByHasbel } = require('./kmzLineSplitter');
 
 const app = express();
 const upload = multer({
@@ -145,6 +140,7 @@ app.post('/api/export', opnameUpload, async (req, res) => {
       return res.status(400).json({ error: 'File KMZ/KML wajib diunggah.' });
     }
     const result = await processOpnameFiles(files, parseOptions(req.body));
+    const { buildOpnameWorkbookBuffer, buildMultiOpnameWorkbookBuffer } = require('./excelExporter');
     const xlsxBuffer = result.isMulti
       ? await buildMultiOpnameWorkbookBuffer(result.opnameList, result.opname)
       : await buildOpnameWorkbookBuffer(result.opname);
@@ -189,6 +185,7 @@ app.post('/api/mf-preview', mfUpload, async (req, res) => {
     if (!baseFile || !mfFile) {
       return res.status(400).json({ error: 'KMZ Awal dan KMZ Jalur MF wajib diunggah.' });
     }
+    const { editKmzForMf } = require('./kmzMfEditor');
     const result = await editKmzForMf(
       baseFile.buffer,
       baseFile.originalname,
@@ -209,6 +206,7 @@ app.post('/api/mf-export', mfUpload, async (req, res) => {
     if (!baseFile || !mfFile) {
       return res.status(400).json({ error: 'KMZ Awal dan KMZ Jalur MF wajib diunggah.' });
     }
+    const { editKmzForMf } = require('./kmzMfEditor');
     const result = await editKmzForMf(
       baseFile.buffer,
       baseFile.originalname,
@@ -252,6 +250,7 @@ app.post('/api/clean-preview', upload.single('kmzFile'), async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ error: 'File KMZ/KML wajib diunggah.' });
     }
+    const { cleanKmzBuffer } = require('./kmzCleaner');
     const result = await cleanKmzBuffer(
       req.file.buffer,
       req.file.originalname,
@@ -269,6 +268,7 @@ app.post('/api/clean-export', upload.single('kmzFile'), async (req, res) => {
       return res.status(400).json({ error: 'File KMZ/KML wajib diunggah.' });
     }
     const opts = parseCleanOptions(req.body);
+    const { cleanKmzBuffer } = require('./kmzCleaner');
     const result = await cleanKmzBuffer(
       req.file.buffer,
       req.file.originalname,
@@ -298,6 +298,7 @@ app.post('/api/batch-preview', upload.array('kmzFiles', 500), async (req, res) =
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'Pilih minimal 1 file KMZ/KML.' });
     }
+    const { processBatchKmzToCsv } = require('./batchCsvExporter');
     const result = await processBatchKmzToCsv(req.files);
     res.json({
       clusterSummaries: result.clusterSummaries,
@@ -313,6 +314,7 @@ app.post('/api/batch-export', upload.array('kmzFiles', 500), async (req, res) =>
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'Pilih minimal 1 file KMZ/KML.' });
     }
+    const { processBatchKmzToCsv } = require('./batchCsvExporter');
     const result = await processBatchKmzToCsv(req.files);
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="Summary_Batch_KMZ.csv"');
@@ -353,6 +355,7 @@ app.post('/api/split-preview', upload.single('kmzFile'), async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ error: 'File KMZ/KML wajib diunggah.' });
     }
+    const { splitKmzLinesByHasbel } = require('./kmzLineSplitter');
     const result = await splitKmzLinesByHasbel(
       req.file.buffer,
       req.file.originalname,
@@ -375,6 +378,7 @@ app.post('/api/split-export', upload.single('kmzFile'), async (req, res) => {
       return res.status(400).json({ error: 'File KMZ/KML wajib diunggah.' });
     }
     const opts = parseSplitOptions(req.body);
+    const { splitKmzLinesByHasbel } = require('./kmzLineSplitter');
     const result = await splitKmzLinesByHasbel(
       req.file.buffer,
       req.file.originalname,
