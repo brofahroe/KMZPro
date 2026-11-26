@@ -580,7 +580,7 @@
               <select id="networkMode">
                 <option value="auto">Auto-Deteksi (Distribusi / Feeder)</option>
                 <option value="distribusi">Distribusi (Slack di FAT / FDT)</option>
-                <option value="feeder">Subfeeder / SF / MF / HF / Feeder (Slack per 400m)</option>
+                <option value="feeder">Subfeeder / SF / MF / HF / Feeder (Slack 400m &amp; JC per Hasbel)</option>
               </select>
             </div>
             <div class="form-group">
@@ -590,6 +590,14 @@
             <div class="form-group">
               <label for="maxConsecSusp">Maks. Suspension Berurutan</label>
               <input type="number" id="maxConsecSusp" value="2" min="1" max="10" />
+            </div>
+            <div class="form-group">
+              <label for="crossing9mMaxDist">Batas Jarak 2 Pole 9m (m) — Dead End + 2 Clamp</label>
+              <input type="number" id="crossing9mMaxDist" value="60" min="0" max="500" step="1" />
+            </div>
+            <div class="form-group">
+              <label for="maxHasbelMeters">Kapasitas 1 Hasbel Feeder (m) — JC + Slack Hanger</label>
+              <input type="number" id="maxHasbelMeters" value="3000" min="0" max="20000" step="50" />
             </div>
             <label class="checkbox-row">
               <input type="checkbox" id="includeExisting" checked />
@@ -641,6 +649,7 @@
                   <th class="num">SLACK HANGER</th>
                   <th class="num">POLE CLAMP</th>
                   <th class="num">BULDOG GRIP</th>
+                  <th class="num">JOINT CLOSURE</th>
                   <th>REMARK</th>
                 </tr>
               </thead>
@@ -1093,6 +1102,8 @@
       fd.append('networkMode', document.getElementById('networkMode').value);
       fd.append('angleThreshold', document.getElementById('angleThreshold').value);
       fd.append('maxConsecSusp', document.getElementById('maxConsecSusp').value);
+      fd.append('crossing9mMaxDist', document.getElementById('crossing9mMaxDist').value);
+      fd.append('maxHasbelMeters', document.getElementById('maxHasbelMeters').value);
       fd.append('includeExisting', document.getElementById('includeExisting').checked);
       return fd;
     }
@@ -1162,6 +1173,7 @@
         { label: 'Slack Hanger', value: t.slackHanger, sub: 'pcs' },
         { label: 'Pole Clamp', value: t.poleClamp, sub: 'pcs' },
         { label: 'Buldog Grip', value: t.buldogGrip, sub: 'pcs' },
+        { label: 'Joint Closure (JC)', value: t.jointClosure || 0, sub: 'pcs (feeder per hasbel)' },
         { label: 'Sling Wire', value: `${t.slingWireMeters} m`, sub: `${opname.slings.length} segmen` },
         { label: cableLabel, value: `${t.cableNominalMeters} m`, sub: `2D rute: ${t.cable2DMeters} m` },
       ];
@@ -1214,6 +1226,7 @@
             <td class="num">${r.slackHanger || ''}</td>
             <td class="num">${r.poleClamp || ''}</td>
             <td class="num">${r.buldogGrip || ''}</td>
+            <td class="num">${r.jointClosure || ''}</td>
             <td class="remark">${r.remark || '-'}</td>
           </tr>`
         )

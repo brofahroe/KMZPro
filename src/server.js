@@ -15,6 +15,8 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 function parseOptions(body = {}) {
   const angleThreshold = parseFloat(body.angleThreshold);
   const maxConsecSusp = parseInt(body.maxConsecSusp, 10);
+  const crossing9mMaxDist = parseFloat(body.crossing9mMaxDist);
+  const maxHasbelMeters = parseFloat(body.maxHasbelMeters);
   const slackIntervalMeters = parseFloat(body.slackIntervalMeters);
   const includeExisting =
     body.includeExisting === undefined
@@ -27,6 +29,14 @@ function parseOptions(body = {}) {
   return {
     angleThreshold: Number.isFinite(angleThreshold) ? angleThreshold : 30.0,
     maxConsecSusp: Number.isFinite(maxConsecSusp) ? maxConsecSusp : 2,
+    crossing9mMaxDist:
+      Number.isFinite(crossing9mMaxDist) && crossing9mMaxDist >= 0
+        ? crossing9mMaxDist
+        : 60.0,
+    maxHasbelMeters:
+      Number.isFinite(maxHasbelMeters) && maxHasbelMeters >= 0
+        ? maxHasbelMeters
+        : 3000,
     slackIntervalMeters: Number.isFinite(slackIntervalMeters) ? slackIntervalMeters : 400,
     includeExisting,
     networkMode,
@@ -71,6 +81,7 @@ async function processOpnameFiles(files, options) {
     slackHanger: 0,
     poleClamp: 0,
     buldogGrip: 0,
+    jointClosure: 0,
     slingWireMeters: 0,
     cableNominalMeters: 0,
     cable2DMeters: 0,
@@ -96,6 +107,7 @@ async function processOpnameFiles(files, options) {
     totals.slackHanger += t.slackHanger;
     totals.poleClamp += t.poleClamp;
     totals.buldogGrip += t.buldogGrip;
+    totals.jointClosure += t.jointClosure || 0;
     totals.slingWireMeters += t.slingWireMeters;
     totals.cableNominalMeters += t.cableNominalMeters;
     totals.cable2DMeters += t.cable2DMeters;

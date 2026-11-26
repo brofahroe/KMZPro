@@ -40,6 +40,7 @@ async function buildOpnameWorkbookBuffer(opname) {
     'SLACK HANGER',
     'POLE CLAMP',
     'BULDOG GRIP',
+    'JOINT CLOSURE',
     'REMARK',
   ];
   const headerRow = ws.getRow(2);
@@ -76,9 +77,10 @@ async function buildOpnameWorkbookBuffer(opname) {
       item.slackHanger || null,
       item.poleClamp || null,
       item.buldogGrip || null,
+      item.jointClosure || null,
       item.remark || '',
     ];
-    for (let c = 1; c <= 9; c++) {
+    for (let c = 1; c <= 10; c++) {
       const cell = row.getCell(c);
       cell.border = {
         top: { style: 'thin' },
@@ -86,7 +88,7 @@ async function buildOpnameWorkbookBuffer(opname) {
         bottom: { style: 'thin' },
         right: { style: 'thin' },
       };
-      if (c >= 2 && c <= 8) {
+      if (c >= 2 && c <= 9) {
         cell.alignment = { horizontal: 'center', vertical: 'middle' };
       }
     }
@@ -103,9 +105,10 @@ async function buildOpnameWorkbookBuffer(opname) {
     sumRow.getCell(6).value = { formula: `SUM(F3:F${lastDataRow})`, result: opname.totals.slackHanger };
     sumRow.getCell(7).value = { formula: `SUM(G3:G${lastDataRow})`, result: opname.totals.poleClamp };
     sumRow.getCell(8).value = { formula: `SUM(H3:H${lastDataRow})`, result: opname.totals.buldogGrip };
+    sumRow.getCell(9).value = { formula: `SUM(I3:I${lastDataRow})`, result: opname.totals.jointClosure || 0 };
   }
   sumRow.font = { bold: true };
-  for (let c = 1; c <= 9; c++) {
+  for (let c = 1; c <= 10; c++) {
     const cell = sumRow.getCell(c);
     cell.fill = {
       type: 'pattern',
@@ -118,7 +121,7 @@ async function buildOpnameWorkbookBuffer(opname) {
       bottom: { style: 'thin' },
       right: { style: 'thin' },
     };
-    if (c >= 4 && c <= 8) {
+    if (c >= 4 && c <= 9) {
       cell.alignment = { horizontal: 'center', vertical: 'middle' };
     }
   }
@@ -151,6 +154,7 @@ async function buildOpnameWorkbookBuffer(opname) {
     ['SLACK HANGER', { formula: `F${sumRowIdx}`, result: opname.totals.slackHanger }, 'pcs'],
     ['POLE CLAMP', { formula: `G${sumRowIdx}`, result: opname.totals.poleClamp }, 'pcs'],
     ['BULDOG GRIP', { formula: `H${sumRowIdx}`, result: opname.totals.buldogGrip }, 'pcs'],
+    ['JOINT CLOSURE (JC)', { formula: `I${sumRowIdx}`, result: opname.totals.jointClosure || 0 }, 'pcs'],
     ['SLING WIRE', opname.totals.slingWireMeters, 'm'],
     ['Kabel (KMZ Label)', opname.totals.cableNominalMeters, 'm'],
   ];
@@ -199,6 +203,7 @@ async function buildOpnameWorkbookBuffer(opname) {
     { width: 15 },
     { width: 13 },
     { width: 14 },
+    { width: 15 },
     { width: 34 },
   ];
 
@@ -231,6 +236,7 @@ async function buildMultiOpnameWorkbookBuffer(opnameList, combinedOpname) {
     'SLACK HANGER',
     'POLE CLAMP',
     'BULDOG GRIP',
+    'JOINT CLOSURE',
     'SLING WIRE (m)',
     'KABEL (m)',
   ];
@@ -260,6 +266,7 @@ async function buildMultiOpnameWorkbookBuffer(opnameList, combinedOpname) {
       t.slackHanger,
       t.poleClamp,
       t.buldogGrip,
+      t.jointClosure || 0,
       t.slingWireMeters,
       t.cableNominalMeters,
     ];
@@ -274,7 +281,7 @@ async function buildMultiOpnameWorkbookBuffer(opnameList, combinedOpname) {
   const lastRekapRow = rr - 1;
   const gtRow = wsRekap.getRow(rr);
   gtRow.getCell(2).value = 'GRAND TOTAL';
-  const colLetters = ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+  const colLetters = ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
   colLetters.forEach((col, i) => {
     gtRow.getCell(i + 3).value = { formula: `SUM(${col}3:${col}${lastRekapRow})` };
   });
@@ -298,6 +305,7 @@ async function buildMultiOpnameWorkbookBuffer(opnameList, combinedOpname) {
     { width: 13 },
     { width: 14 },
     { width: 15 },
+    { width: 15 },
     { width: 13 },
   ];
 
@@ -319,6 +327,7 @@ async function buildMultiOpnameWorkbookBuffer(opnameList, combinedOpname) {
     'SLACK HANGER',
     'POLE CLAMP',
     'BULDOG GRIP',
+    'JOINT CLOSURE',
     'REMARK',
   ];
   const headerRow = ws.getRow(2);
@@ -345,12 +354,13 @@ async function buildMultiOpnameWorkbookBuffer(opnameList, combinedOpname) {
       item.slackHanger || null,
       item.poleClamp || null,
       item.buldogGrip || null,
+      item.jointClosure || null,
       item.remark || '',
     ];
-    for (let c = 1; c <= 10; c++) {
+    for (let c = 1; c <= 11; c++) {
       const cell = row.getCell(c);
       cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
-      if (c >= 3 && c <= 9) cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      if (c >= 3 && c <= 10) cell.alignment = { horizontal: 'center', vertical: 'middle' };
     }
     r++;
   }
@@ -364,13 +374,14 @@ async function buildMultiOpnameWorkbookBuffer(opnameList, combinedOpname) {
     sumRow.getCell(7).value = { formula: `SUM(G3:G${lastDataRow})`, result: combinedOpname.totals.slackHanger };
     sumRow.getCell(8).value = { formula: `SUM(H3:H${lastDataRow})`, result: combinedOpname.totals.poleClamp };
     sumRow.getCell(9).value = { formula: `SUM(I3:I${lastDataRow})`, result: combinedOpname.totals.buldogGrip };
+    sumRow.getCell(10).value = { formula: `SUM(J3:J${lastDataRow})`, result: combinedOpname.totals.jointClosure || 0 };
   }
   sumRow.font = { bold: true };
-  for (let c = 1; c <= 10; c++) {
+  for (let c = 1; c <= 11; c++) {
     const cell = sumRow.getCell(c);
     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } };
     cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
-    if (c >= 5 && c <= 9) cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    if (c >= 5 && c <= 10) cell.alignment = { horizontal: 'center', vertical: 'middle' };
   }
 
   ws.columns = [
@@ -383,6 +394,7 @@ async function buildMultiOpnameWorkbookBuffer(opnameList, combinedOpname) {
     { width: 15 },
     { width: 13 },
     { width: 14 },
+    { width: 15 },
     { width: 34 },
   ];
 

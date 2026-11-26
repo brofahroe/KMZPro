@@ -29,7 +29,7 @@ async function main() {
 
   console.log(`Cluster : ${opname.clusterTitle}`);
   console.log(`Poles   : ${opname.totals.totalPoles} (New: ${opname.totals.newPoles}, Existing: ${opname.totals.existingPoles})`);
-  console.log(`Dead End: ${opname.totals.deadEnd} | Suspension: ${opname.totals.suspension} | Slack Hanger: ${opname.totals.slackHanger} | Pole Clamp: ${opname.totals.poleClamp} | Buldog Grip: ${opname.totals.buldogGrip}`);
+  console.log(`Dead End: ${opname.totals.deadEnd} | Suspension: ${opname.totals.suspension} | Slack Hanger: ${opname.totals.slackHanger} | Pole Clamp: ${opname.totals.poleClamp} | Buldog Grip: ${opname.totals.buldogGrip} | JC: ${opname.totals.jointClosure}`);
   console.log(`Saved   : ${outPath}`);
 }
 
