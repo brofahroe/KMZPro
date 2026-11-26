@@ -1917,9 +1917,9 @@
       btnModeMfWhite.className = isReverse ? 'btn-primary' : 'btn-secondary';
 
       if (isReverse) {
-        mfModeTitle.textContent = 'Edit KMZ — Pole MF Bersilangan Cluster → Warna Putih';
+        mfModeTitle.textContent = 'Edit KMZ — Pole MF Bersilangan Cluster → Folder POLE CLUSTER (Putih)';
         mfModeDesc.textContent =
-          'KMZ awal berisi pole Main Feeder (MF) dan input kedua adalah KMZ Cluster. Pole MF yang bersilangan dengan jalur kabel Cluster (≤ toleransi jarak) langsung diubah warnanya menjadi putih.';
+          'KMZ awal berisi pole Main Feeder (MF) dan input kedua adalah KMZ Cluster. Pole MF yang bersilangan dengan jalur kabel Cluster (≤ toleransi jarak) dipindah ke folder POLE CLUSTER dan diubah warnanya menjadi putih.';
         baseKmzTitle.innerHTML = '📂 <strong>1. KMZ Awal (Pole MF)</strong> (.kmz / .kml)';
         baseKmzHint.textContent = 'File KMZ Main Feeder berisi pole yang akan diubah warnanya';
         mfKmzTitle.innerHTML = '🗺️ <strong>2. KMZ Cluster</strong> (.kmz / .kml)';
@@ -1929,9 +1929,9 @@
         mfColorLabel.textContent = 'Warna Pole Bersilangan (default Putih)';
         mfPoleColorEl.value = '#ffffff';
         mfOverrideWrap.style.display = 'none';
-        mfTableTitle.textContent = 'Daftar Pole MF yang Diubah Warna (Bersilangan dengan Cluster)';
-        mfColFrom.textContent = 'FOLDER POLE';
-        mfColTo.textContent = 'WARNA BARU';
+        mfTableTitle.textContent = 'Daftar Pole MF yang Dipindah ke Folder POLE CLUSTER (Warna Putih)';
+        mfColFrom.textContent = 'ASAL';
+        mfColTo.textContent = 'MENJADI';
         mfColDist.textContent = 'JARAK KE CLUSTER (m)';
       } else {
         mfModeTitle.textContent = 'Edit KMZ — Upgrade Pole 2.5" & 3" ke 4" (Jalur MF)';

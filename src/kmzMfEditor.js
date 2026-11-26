@@ -274,7 +274,13 @@ async function editKmzForMf(baseBuffer, baseFilename, refInput, maybeRefFilename
         const lineName = resolveLineName(folder);
         const placemarks = getDirectChildren(folder, 'Placemark');
         for (const pm of placemarks) {
-          candidateEntries.push({ pm, folderName, lineName });
+          candidateEntries.push({
+            pm,
+            sourceContainer: folder,
+            targetParent: folder.parentNode || documentEl,
+            folderName,
+            lineName,
+          });
         }
       }
     } else {
@@ -290,16 +296,22 @@ async function editKmzForMf(baseBuffer, baseFilename, refInput, maybeRefFilename
         if (isInsideFolderMatching(pm, nonPoleFolderRegex)) continue;
         const lineName =
           parent && parent.nodeName === 'Folder' ? resolveLineName(parent) : 'MAIN';
-        candidateEntries.push({ pm, folderName, lineName });
+        candidateEntries.push({
+          pm,
+          sourceContainer: parent || documentEl,
+          targetParent: parent || documentEl,
+          folderName,
+          lineName,
+        });
       }
     }
 
     const colorLabel =
       customHexColor.toUpperCase() === '#FFFFFF'
-        ? 'Putih (#FFFFFF)'
+        ? 'Putih'
         : customHexColor.toUpperCase();
 
-    for (const { pm, folderName, lineName } of candidateEntries) {
+    for (const { pm, sourceContainer, targetParent, folderName, lineName } of candidateEntries) {
       const pointEl = getDirectChild(pm, 'Point');
       if (!pointEl) continue;
       const coordText = getElementText(pointEl, 'coordinates');
@@ -319,11 +331,39 @@ async function editKmzForMf(baseBuffer, baseFilename, refInput, maybeRefFilename
         const poleId = getElementText(pm, 'name') || '(Tanpa Nama)';
         applyStyleUrlToPlacemark(xmlDoc, pm, targetStyleUrl);
 
+        // Find or create sibling "POLE CLUSTER" folder (unless already inside one)
+        let targetClusterFolder = null;
+        if (
+          sourceContainer.nodeName === 'Folder' &&
+          /^POLE\s+CLUSTER$/i.test(getElementText(sourceContainer, 'name'))
+        ) {
+          targetClusterFolder = sourceContainer;
+        } else {
+          const siblingFolders = getDirectChildren(targetParent, 'Folder');
+          for (const sib of siblingFolders) {
+            if (/^POLE\s+CLUSTER$/i.test(getElementText(sib, 'name'))) {
+              targetClusterFolder = sib;
+              break;
+            }
+          }
+          if (!targetClusterFolder) {
+            targetClusterFolder = xmlDoc.createElement('Folder');
+            const nameEl = xmlDoc.createElement('name');
+            nameEl.textContent = 'POLE CLUSTER';
+            targetClusterFolder.appendChild(nameEl);
+            targetParent.appendChild(targetClusterFolder);
+          }
+          if (pm.parentNode && pm.parentNode !== targetClusterFolder) {
+            pm.parentNode.removeChild(pm);
+            targetClusterFolder.appendChild(pm);
+          }
+        }
+
         changes.push({
           poleId,
           line: lineName,
           fromFolder: folderName,
-          toFolder: `Warna ${colorLabel}`,
+          toFolder: `POLE CLUSTER (${colorLabel})`,
           distanceMeters: Math.round(minDist * 100) / 100,
         });
       }
