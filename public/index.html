@@ -3,10 +3,19 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#0f172a" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="description" content="Automasi Opname Pole & Aksesoris, Kabel Potongan, Edit KMZ Jalur MF, Filter Item, Batch CSV, dan Split Hasbel Feeder dalam satu platform PWA." />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="KMZPro" />
   <title>KMZPro — Automasi FTTH &amp; Toolkit KMZ</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
   <style>
     :root {
       --bg: #0f172a;
@@ -30,11 +39,17 @@
 
     body {
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: var(--bg);
+      background:
+        radial-gradient(900px 420px at 12% -10%, rgba(56, 189, 248, 0.12), transparent 65%),
+        radial-gradient(700px 380px at 90% 0%, rgba(34, 197, 94, 0.07), transparent 60%),
+        var(--bg);
       color: var(--text);
       line-height: 1.5;
       min-height: 100vh;
-      padding: 24px;
+      min-height: 100dvh;
+      padding: 0 24px calc(32px + env(safe-area-inset-bottom));
+      overscroll-behavior-y: contain;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .container {
@@ -42,34 +57,139 @@
       margin: 0 auto;
     }
 
-    header {
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      margin: 0 -24px 20px;
+      padding: calc(14px + env(safe-area-inset-top)) 24px 14px;
+      background: rgba(15, 23, 42, 0.86);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(51, 65, 85, 0.85);
+    }
+
+    .app-header-inner {
+      max-width: 1280px;
+      margin: 0 auto;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 12px;
-      margin-bottom: 24px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--border);
     }
 
-    header h1 {
-      font-size: 1.5rem;
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 11px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 14px rgba(14, 165, 233, 0.25);
+    }
+
+    .app-header h1 {
+      font-size: 1.38rem;
       font-weight: 700;
       color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      line-height: 1.2;
     }
 
-    header p {
-      font-size: 0.9rem;
+    .suite-pill {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.32);
+      white-space: nowrap;
+    }
+
+    .app-subtitle {
+      font-size: 0.84rem;
       color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      background: rgba(245, 158, 11, 0.16);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+
+    .btn-install {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+      color: #082f49;
+      font-size: 0.82rem;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.28);
+    }
+
+    .btn-install svg {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+    }
+
+    .ios-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      border-radius: 10px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #e0f2fe;
+      font-size: 0.82rem;
+    }
+
+    .ios-banner button {
+      background: transparent;
+      color: #bae6fd;
+      padding: 4px 8px;
+      font-size: 1rem;
+      line-height: 1;
     }
 
     .card {
-      background: var(--surface);
+      background: rgba(30, 41, 59, 0.94);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 20px;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 24px rgba(2, 6, 23, 0.25);
     }
 
     .upload-grid {
@@ -138,9 +258,20 @@
       padding: 8px 10px;
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 6px;
+      border-radius: 8px;
       color: var(--text);
       font-size: 0.9rem;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .form-group input[type="number"]:focus,
+    .form-group select:focus,
+    .toolbar input:focus,
+    .toolbar select:focus,
+    .inline-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.16);
     }
 
     .checkbox-row {
@@ -301,51 +432,105 @@
       display: none;
     }
 
-    @media (max-width: 640px) {
+    .bottom-nav {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
       body {
-        padding: 12px;
+        padding: 0 12px calc(86px + env(safe-area-inset-bottom));
         overflow-x: hidden;
       }
 
-      header {
-        margin-bottom: 14px;
-        padding-bottom: 12px;
+      .app-header {
+        margin: 0 -12px 14px;
+        padding: calc(10px + env(safe-area-inset-top)) 12px 10px;
       }
 
-      header img {
-        width: 38px !important;
-        height: 38px !important;
+      .brand-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
       }
 
-      header h1 {
-        font-size: 1.2rem;
+      .app-header h1 {
+        font-size: 1.15rem;
       }
 
-      header p {
-        font-size: 0.78rem;
+      .app-subtitle {
+        display: none;
+      }
+
+      .btn-install {
+        padding: 6px 11px;
+        font-size: 0.76rem;
       }
 
       .card {
         padding: 14px;
         margin-bottom: 14px;
-        border-radius: 10px;
+        border-radius: 12px;
       }
 
       .tabs {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        gap: 6px;
-        margin-bottom: 14px;
-        padding-bottom: 8px;
+        display: none;
       }
 
-      .tab-btn {
-        flex: 0 0 auto;
-        white-space: nowrap;
-        padding: 8px 12px;
-        font-size: 0.82rem;
+      .bottom-nav {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 50;
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        background: rgba(15, 23, 42, 0.94);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-top: 1px solid rgba(51, 65, 85, 0.9);
+        padding: 4px 4px max(6px, env(safe-area-inset-bottom));
+        box-shadow: 0 -6px 20px rgba(2, 6, 23, 0.45);
+      }
+
+      .bottom-nav-btn {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        padding: 6px 2px;
+        border-radius: 10px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 0.65rem;
+        font-weight: 600;
+        line-height: 1.1;
+        min-height: 50px;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      .bottom-nav-btn svg {
+        width: 20px;
+        height: 20px;
+        stroke-width: 1.9;
+      }
+
+      .bottom-nav-btn.active {
+        color: var(--primary);
+        background: rgba(56, 189, 248, 0.12);
+      }
+
+      .bottom-nav-btn.active::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 24%;
+        right: 24%;
+        height: 2.5px;
+        border-radius: 999px;
+        background: var(--primary);
       }
 
       .dropzone {
@@ -399,7 +584,16 @@
       }
 
       .table-wrap {
-        max-height: 60vh;
+        max-height: 56vh;
+      }
+    }
+
+    @media (display-mode: standalone) {
+      .app-header,
+      .tabs,
+      .bottom-nav {
+        user-select: none;
+        -webkit-user-select: none;
       }
     }
 
@@ -456,25 +650,43 @@
       display: flex;
       gap: 8px;
       margin-bottom: 20px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 10px;
+      padding: 6px;
+      background: rgba(30, 41, 59, 0.72);
+      border: 1px solid var(--border);
+      border-radius: 12px;
       flex-wrap: wrap;
     }
 
     .tab-btn {
-      background: var(--surface);
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: transparent;
       color: var(--muted);
-      border: 1px solid var(--border);
-      padding: 9px 18px;
+      border: 1px solid transparent;
+      padding: 8px 14px;
       border-radius: 8px;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.86rem;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .tab-btn svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .tab-btn:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
     }
 
     .tab-btn.active {
       background: var(--primary);
-      color: #0f172a;
+      color: #082f49;
       border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);
     }
 
     .btn-secondary {
@@ -532,32 +744,61 @@
 </head>
 
 <body>
-  <div class="container">
-    <header>
-      <div style="display:flex; align-items:center; gap:14px;">
-        <img src="/favicon.svg" alt="KMZPro Logo" width="48" height="48" style="border-radius:12px; flex-shrink:0;" />
-        <div>
-          <h1 style="display:flex; align-items:center; gap:8px; margin:0;">
+  <header class="app-header">
+    <div class="app-header-inner">
+      <div class="brand-group">
+        <img src="/favicon.svg" alt="KMZPro Logo" width="44" height="44" class="brand-icon" />
+        <div style="min-width:0;">
+          <h1>
             <span><span style="color:#f1f5f9;">KMZ</span><span style="color:#38bdf8;">Pro</span></span>
-            <span
-              style="font-size:0.72rem; font-weight:600; padding:2px 8px; border-radius:999px; background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3);">FTTH
-              Suite</span>
+            <span class="suite-pill">FTTH Suite</span>
           </h1>
-          <p style="margin-top:2px;">Automasi Opname Pole &amp; Aksesoris, Kabel Potongan, serta Edit KMZ dalam Satu
-            Platform</p>
+          <p class="app-subtitle">Automasi Opname Pole &amp; Aksesoris, Kabel Potongan, serta Edit KMZ dalam Satu Platform</p>
         </div>
       </div>
-    </header>
+      <div class="header-actions">
+        <span id="offlineBadge" class="status-pill hidden" role="status">● Offline</span>
+        <button id="btnInstallPwa" class="btn-install hidden" type="button" aria-label="Install KMZPro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Install App</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div id="iosInstallBanner" class="ios-banner hidden">
+      <span>Install <strong>KMZPro</strong> di iPhone/iPad: tekan tombol <strong>Share</strong> lalu pilih <strong>Add to Home Screen</strong>.</span>
+      <button id="btnDismissIos" type="button" aria-label="Tutup">×</button>
+    </div>
 
     <div id="alertBox" class="alert"></div>
 
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="opname">Opname Acc &amp; Pole</button>
-      <button class="tab-btn" data-tab="cutcable">Hitung Potong Kabel</button>
-      <button class="tab-btn" data-tab="editkmz">Edit KMZ (Jalur MF)</button>
-      <button class="tab-btn" data-tab="cleankmz">Bersihkan KMZ (Filter Item)</button>
-      <button class="tab-btn" data-tab="batchcsv">Batch Summary → CSV</button>
-      <button class="tab-btn" data-tab="splitkmz">Line Parser (Split Hasbel)</button>
+    <div class="tabs" role="tablist" aria-label="Menu Utama KMZPro">
+      <button class="tab-btn active" data-tab="opname" role="tab" aria-selected="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span>Opname Acc &amp; Pole</span>
+      </button>
+      <button class="tab-btn" data-tab="cutcable" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+        <span>Hitung Potong Kabel</span>
+      </button>
+      <button class="tab-btn" data-tab="editkmz" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        <span>Edit KMZ (Jalur MF)</span>
+      </button>
+      <button class="tab-btn" data-tab="cleankmz" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        <span>Bersihkan KMZ (Filter Item)</span>
+      </button>
+      <button class="tab-btn" data-tab="batchcsv" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+        <span>Batch Summary → CSV</span>
+      </button>
+      <button class="tab-btn" data-tab="splitkmz" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.5 12h4l5-5"/><path d="M11.5 12l5 5"/></svg>
+        <span>Line Parser (Split Hasbel)</span>
+      </button>
     </div>
 
     <div id="tab-opname" class="tab-panel">
@@ -1026,6 +1267,33 @@
     </div>
   </div>
 
+  <nav class="bottom-nav" aria-label="Navigasi Mobile KMZPro">
+    <button class="bottom-nav-btn active" data-tab="opname" type="button" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <span>Opname</span>
+    </button>
+    <button class="bottom-nav-btn" data-tab="cutcable" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+      <span>Kabel</span>
+    </button>
+    <button class="bottom-nav-btn" data-tab="editkmz" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      <span>Edit MF</span>
+    </button>
+    <button class="bottom-nav-btn" data-tab="cleankmz" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      <span>Filter</span>
+    </button>
+    <button class="bottom-nav-btn" data-tab="batchcsv" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      <span>Batch</span>
+    </button>
+    <button class="bottom-nav-btn" data-tab="splitkmz" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.5 12h4l5-5"/><path d="M11.5 12l5 5"/></svg>
+      <span>Hasbel</span>
+    </button>
+  </nav>
+
   <script>
     const dropzone = document.getElementById('dropzone');
     const fileInput = document.getElementById('fileInput');
@@ -1236,19 +1504,111 @@
     searchInput.addEventListener('input', renderTable);
     lineFilter.addEventListener('change', renderTable);
 
-    // --- Tab Navigation ---
+    // --- Tab Navigation (Desktop Tabs + Mobile Bottom Nav + URL Shortcut Sync) ---
     const tabBtns = document.querySelectorAll('.tab-btn');
+    const bottomNavBtns = document.querySelectorAll('.bottom-nav-btn');
     const tabPanels = document.querySelectorAll('.tab-panel');
-    tabBtns.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const target = btn.dataset.tab;
-        tabBtns.forEach((b) => b.classList.toggle('active', b === btn));
-        tabPanels.forEach((p) => p.classList.toggle('hidden', p.id !== `tab-${target}`));
-        if (target === 'cutcable' && selectedFile && !currentOpname) {
-          btnAnalyze.click();
-        }
+    const validTabs = new Set(Array.from(tabPanels).map((p) => p.id.replace(/^tab-/, '')));
+
+    function activateTab(target, { syncUrl = true, scrollTop = false } = {}) {
+      if (!validTabs.has(target)) return;
+      tabBtns.forEach((b) => {
+        const isActive = b.dataset.tab === target;
+        b.classList.toggle('active', isActive);
+        b.setAttribute('aria-selected', String(isActive));
       });
+      bottomNavBtns.forEach((b) => {
+        const isActive = b.dataset.tab === target;
+        b.classList.toggle('active', isActive);
+        b.setAttribute('aria-current', isActive ? 'page' : 'false');
+      });
+      tabPanels.forEach((p) => p.classList.toggle('hidden', p.id !== `tab-${target}`));
+
+      if (syncUrl && window.history && window.history.replaceState) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('tab', target);
+        window.history.replaceState({}, '', url);
+      }
+      if (scrollTop && window.innerWidth <= 768) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      if (target === 'cutcable' && selectedFile && !currentOpname) {
+        btnAnalyze.click();
+      }
+    }
+
+    tabBtns.forEach((btn) => {
+      btn.addEventListener('click', () => activateTab(btn.dataset.tab));
     });
+    bottomNavBtns.forEach((btn) => {
+      btn.addEventListener('click', () => activateTab(btn.dataset.tab, { scrollTop: true }));
+    });
+
+    const initialTab = new URLSearchParams(window.location.search).get('tab');
+    if (initialTab && validTabs.has(initialTab)) {
+      activateTab(initialTab, { syncUrl: false });
+    }
+
+    // --- PWA Install Prompt, Offline Status & Service Worker ---
+    const btnInstallPwa = document.getElementById('btnInstallPwa');
+    const offlineBadge = document.getElementById('offlineBadge');
+    const iosInstallBanner = document.getElementById('iosInstallBanner');
+    const btnDismissIos = document.getElementById('btnDismissIos');
+    let deferredInstallPrompt = null;
+
+    function updateOnlineStatus() {
+      if (!offlineBadge) return;
+      offlineBadge.classList.toggle('hidden', navigator.onLine !== false);
+    }
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      if (btnInstallPwa) btnInstallPwa.classList.remove('hidden');
+    });
+
+    if (btnInstallPwa) {
+      btnInstallPwa.addEventListener('click', async () => {
+        if (!deferredInstallPrompt) return;
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        if (choice && choice.outcome === 'accepted') {
+          btnInstallPwa.classList.add('hidden');
+        }
+        deferredInstallPrompt = null;
+      });
+    }
+
+    window.addEventListener('appinstalled', () => {
+      if (btnInstallPwa) btnInstallPwa.classList.add('hidden');
+      if (iosInstallBanner) iosInstallBanner.classList.add('hidden');
+      showAlert('KMZPro berhasil di-install sebagai aplikasi!', 'info');
+    });
+
+    const isIosSafari =
+      /iphone|ipad|ipod/i.test(navigator.userAgent) &&
+      /safari/i.test(navigator.userAgent) &&
+      !/crios|fxios|edgios/i.test(navigator.userAgent);
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (isIosSafari && !isStandalone && !localStorage.getItem('kmzpro_ios_dismissed') && iosInstallBanner) {
+      iosInstallBanner.classList.remove('hidden');
+    }
+    if (btnDismissIos && iosInstallBanner) {
+      btnDismissIos.addEventListener('click', () => {
+        iosInstallBanner.classList.add('hidden');
+        localStorage.setItem('kmzpro_ios_dismissed', '1');
+      });
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
+      });
+    }
 
     // --- Kabel Potongan Calculator ---
     const globalSlackEl = document.getElementById('globalSlack');

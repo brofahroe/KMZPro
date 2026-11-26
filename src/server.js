@@ -10,7 +10,18 @@ const upload = multer({
   limits: { fileSize: 50 * 1024 * 1024, files: 500 },
 });
 
-app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(
+  express.static(path.join(__dirname, '..', 'public'), {
+    setHeaders(res, filePath) {
+      if (filePath.endsWith('sw.js')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Service-Worker-Allowed', '/');
+      } else if (filePath.endsWith('.webmanifest')) {
+        res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+      }
+    },
+  })
+);
 
 function parseOptions(body = {}) {
   const angleThreshold = parseFloat(body.angleThreshold);
