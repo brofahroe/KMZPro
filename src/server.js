@@ -265,10 +265,24 @@ function parseCleanOptions(body = {}) {
   } else if (Array.isArray(body.targets)) {
     targets = body.targets;
   }
+  const removeEmptyFolders =
+    body.removeEmptyFolders === 'true' || body.removeEmptyFolders === true;
+  const resizeIcons =
+    body.resizeIcons === 'true' || body.resizeIcons === true;
+  const iconScaleFrom = parseFloat(body.iconScaleFrom);
+  const iconScaleTo = parseFloat(body.iconScaleTo);
+  const iconScaleAll =
+    body.iconScaleAll === 'true' || body.iconScaleAll === true;
+
   return {
     targets,
     mode: body.mode === 'hide' ? 'hide' : 'remove',
     outputFormat: body.outputFormat === 'kml' ? 'kml' : 'kmz',
+    removeEmptyFolders,
+    resizeIcons,
+    iconScaleFrom: Number.isFinite(iconScaleFrom) && iconScaleFrom > 0 ? iconScaleFrom : 0.8,
+    iconScaleTo: Number.isFinite(iconScaleTo) && iconScaleTo > 0 ? iconScaleTo : 1.5,
+    iconScaleAll,
   };
 }
 

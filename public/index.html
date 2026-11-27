@@ -1767,6 +1767,34 @@
                   value="SLACK HANGER" checked /> SLACK HANGER</label>
             </div>
 
+            <div style="border-top:1px solid var(--border); padding-top:12px; margin-bottom:14px;">
+              <div style="font-size:0.8rem; font-weight:600; color:var(--muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.04em;">Opsi Tambahan</div>
+              <label class="checkbox-row" style="margin-top:0; margin-bottom:8px;">
+                <input type="checkbox" id="cleanRemoveEmpty" />
+                Hapus Folder-Folder yang Kosong
+              </label>
+              <label class="checkbox-row" style="margin-top:0;">
+                <input type="checkbox" id="cleanResizeIcons" />
+                Perbesar Icon Map (0.8 → 1.5)
+              </label>
+              <div id="cleanIconScaleBox" class="hidden" style="margin-top:10px; padding:10px 12px; background:var(--bg); border:1px solid var(--border); border-radius:8px;">
+                <div class="grid-2" style="gap:8px;">
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label for="cleanIconFrom">Skala Awal</label>
+                    <input type="number" id="cleanIconFrom" value="0.8" min="0.1" max="10" step="0.1" />
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label for="cleanIconTo">Skala Baru</label>
+                    <input type="number" id="cleanIconTo" value="1.5" min="0.1" max="10" step="0.1" />
+                  </div>
+                </div>
+                <label class="checkbox-row" style="margin-top:8px; font-size:0.82rem; color:var(--muted);">
+                  <input type="checkbox" id="cleanIconAll" />
+                  Terapkan ke semua skala icon (tidak hanya 0.8)
+                </label>
+              </div>
+            </div>
+
             <div class="grid-2">
               <div class="form-group" style="margin-bottom:0;">
                 <label for="cleanMode">Aksi</label>
@@ -1842,8 +1870,8 @@
             <div class="guide-step">
               <span class="guide-step-num">2</span>
               <div>
-                <h4>Centang Kategori Target</h4>
-                <p>Pilih folder yang ingin diproses (minimal 1 dicentang): <span class="guide-code">BOUNDARY CLUSTER</span>, <span class="guide-code">BOUNDARY FAT</span>, <span class="guide-code">HP COVER</span>, <span class="guide-code">HP UNCOVER</span>, dan/atau <span class="guide-code">SLACK HANGER</span>.</p>
+                <h4>Centang Kategori &amp; Opsi Tambahan</h4>
+                <p>Pilih folder target (<span class="guide-code">BOUNDARY CLUSTER</span>, <span class="guide-code">BOUNDARY FAT</span>, <span class="guide-code">HP COVER</span>, <span class="guide-code">HP UNCOVER</span>, <span class="guide-code">SLACK HANGER</span>), dan/atau aktifkan <strong>Hapus Folder-Folder yang Kosong</strong> serta <strong>Perbesar Icon Map (0.8 → 1.5)</strong>.</p>
               </div>
             </div>
             <div class="guide-step">
@@ -1880,10 +1908,11 @@
           </div>
 
           <div class="guide-card">
-            <h3>📦 Format Output</h3>
+            <h3>📦 Format Output &amp; Opsi Tambahan</h3>
             <ul class="guide-list">
-              <li><strong>KMZ (.kmz):</strong> Format terkompresi ZIP (direkomendasikan). Ukuran file jauh lebih kecil dan mempertahankan aset ikon/gambar bawaan di dalam KMZ asal.</li>
-              <li><strong>KML (.kml):</strong> Format XML teks mentah tanpa kompresi. Cocok bila file akan diimpor ke tool GIS/skrip tertentu yang hanya menerima KML.</li>
+              <li><strong>Hapus Folder-Folder yang Kosong:</strong> Menghapus otomatis seluruh folder kosong (termasuk folder bertingkat/nested yang menjadi kosong setelah penghapusan kategori target).</li>
+              <li><strong>Perbesar Icon Map (0.8 → 1.5):</strong> Mengubah ukuran <span class="guide-code">&lt;IconStyle&gt;&lt;scale&gt;</span> dari <span class="guide-code">0.8</span> menjadi <span class="guide-code">1.5</span> (nilai skala dapat diubah, atau centang opsi terapkan ke semua skala icon).</li>
+              <li><strong>KMZ (.kmz) vs KML (.kml):</strong> Format <span class="guide-code">.kmz</span> terkompresi lebih kecil (direkomendasikan), sedangkan <span class="guide-code">.kml</span> adalah XML mentah untuk impor ke tool GIS.</li>
             </ul>
           </div>
         </div>
@@ -1893,7 +1922,7 @@
           <ul>
             <li>Pencocokan nama folder bersifat tidak peka huruf besar/kecil (misal <span class="guide-code">HP COVER</span> maupun <span class="guide-code">hp cover</span> sama-sama terdeteksi).</li>
             <li>Jika suatu kategori berstatus <em>Tidak ditemukan</em> di tabel preview, artinya tidak ada folder dengan nama tersebut di dalam file KMZ sumber.</li>
-            <li>Pastikan minimal 1 kotak centang kategori aktif sebelum menekan <em>Preview Pengurangan</em> atau <em>Download Hasil</em>.</li>
+            <li>Pastikan minimal 1 kategori folder atau opsi tambahan (<strong>Hapus Folder Kosong</strong> / <strong>Perbesar Icon Map</strong>) aktif sebelum menekan <em>Preview Pengurangan</em> atau <em>Download Hasil</em>.</li>
           </ul>
         </div>
 
@@ -3193,8 +3222,30 @@
       if (selectedFile) setCleanKmz(selectedFile);
     });
 
+    const cleanRemoveEmptyEl = document.getElementById('cleanRemoveEmpty');
+    const cleanResizeIconsEl = document.getElementById('cleanResizeIcons');
+    const cleanIconScaleBox = document.getElementById('cleanIconScaleBox');
+    const cleanIconFromEl = document.getElementById('cleanIconFrom');
+    const cleanIconToEl = document.getElementById('cleanIconTo');
+    const cleanIconAllEl = document.getElementById('cleanIconAll');
+
+    cleanResizeIconsEl.addEventListener('change', () => {
+      cleanIconScaleBox.classList.toggle('hidden', !cleanResizeIconsEl.checked);
+    });
+    cleanIconAllEl.addEventListener('change', () => {
+      cleanIconFromEl.disabled = cleanIconAllEl.checked;
+    });
+
     function getCleanTargets() {
       return Array.from(document.querySelectorAll('.clean-target:checked')).map((el) => el.value);
+    }
+
+    function hasAnyCleanAction() {
+      return (
+        getCleanTargets().length > 0 ||
+        cleanRemoveEmptyEl.checked ||
+        cleanResizeIconsEl.checked
+      );
     }
 
     function buildCleanFormData() {
@@ -3203,14 +3254,18 @@
       fd.append('targets', JSON.stringify(getCleanTargets()));
       fd.append('mode', document.getElementById('cleanMode').value);
       fd.append('outputFormat', document.getElementById('cleanFormat').value);
+      fd.append('removeEmptyFolders', cleanRemoveEmptyEl.checked);
+      fd.append('resizeIcons', cleanResizeIconsEl.checked);
+      fd.append('iconScaleFrom', cleanIconFromEl.value);
+      fd.append('iconScaleTo', cleanIconToEl.value);
+      fd.append('iconScaleAll', cleanIconAllEl.checked);
       return fd;
     }
 
     btnCleanPreview.addEventListener('click', async () => {
       if (!cleanKmzFile) return;
-      const targets = getCleanTargets();
-      if (targets.length === 0) {
-        showAlert('Pilih minimal 1 kategori folder yang ingin dihapus/disembunyikan.', 'error');
+      if (!hasAnyCleanAction()) {
+        showAlert('Pilih minimal 1 kategori folder atau opsi tambahan (Hapus Folder Kosong / Perbesar Icon Map).', 'error');
         return;
       }
       hideAlert();
@@ -3231,9 +3286,8 @@
 
     btnCleanExport.addEventListener('click', async () => {
       if (!cleanKmzFile) return;
-      const targets = getCleanTargets();
-      if (targets.length === 0) {
-        showAlert('Pilih minimal 1 kategori folder yang ingin dihapus/disembunyikan.', 'error');
+      if (!hasAnyCleanAction()) {
+        showAlert('Pilih minimal 1 kategori folder atau opsi tambahan (Hapus Folder Kosong / Perbesar Icon Map).', 'error');
         return;
       }
       hideAlert();
@@ -3275,28 +3329,50 @@
         : 0;
 
       const kpis = [
-        { label: 'Folder Diproses', value: summary.totalFoldersAffected, sub: summary.mode === 'hide' ? 'disembunyikan' : 'dihapus' },
+        {
+          label: 'Folder Diproses',
+          value: summary.totalFoldersAffected,
+          sub: summary.removeEmptyFolders
+            ? `${summary.emptyFoldersRemoved || 0} folder kosong dihapus`
+            : summary.mode === 'hide'
+              ? 'disembunyikan'
+              : 'dihapus',
+        },
         { label: 'Placemark Diproses', value: summary.totalPlacemarksAffected, sub: 'item tidak ditampilkan' },
-        { label: 'Ukuran Awal', value: `${origKB} KB`, sub: 'file sumber' },
-        { label: 'Ukuran Hasil', value: `${outKB} KB`, sub: `format .${summary.outputFormat} (${savedPct >= 0 ? '-' + savedPct : '+' + Math.abs(savedPct)}%)` },
       ];
+      if (summary.resizeIcons) {
+        const fromLbl = summary.iconScaleAll ? 'semua' : summary.iconScaleFrom;
+        kpis.push({
+          label: 'Icon Diperbesar',
+          value: summary.iconsResized || 0,
+          sub: `skala ${fromLbl} → ${summary.iconScaleTo}`,
+        });
+      }
+      kpis.push(
+        { label: 'Ukuran Awal', value: `${origKB} KB`, sub: 'file sumber' },
+        { label: 'Ukuran Hasil', value: `${outKB} KB`, sub: `format .${summary.outputFormat} (${savedPct >= 0 ? '-' + savedPct : '+' + Math.abs(savedPct)}%)` }
+      );
       cleanKpiGrid.innerHTML = kpis
         .map(
           (k) => `<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>`
         )
         .join('');
 
-      const statusLabel = summary.mode === 'hide' ? 'Disembunyikan (visibility=0)' : 'Dihapus Permanen';
+      const fallbackStatusLabel = summary.mode === 'hide' ? 'Disembunyikan (visibility=0)' : 'Dihapus Permanen';
       cleanTableBody.innerHTML = breakdown
         .map(
-          (b, idx) => `
+          (b, idx) => {
+            const isAffected = b.affected !== undefined ? b.affected : b.foldersAffected > 0;
+            const statusText = b.statusLabel || (isAffected ? fallbackStatusLabel : 'Tidak ditemukan');
+            return `
           <tr>
             <td>${idx + 1}</td>
-            <td><strong>${b.category}</strong></td>
+            <td><strong>${escHtml(b.category)}</strong></td>
             <td class="num">${b.foldersAffected}</td>
             <td class="num">${b.placemarksAffected}</td>
-            <td style="color:${b.foldersAffected > 0 ? 'var(--success)' : 'var(--muted)'};">${b.foldersAffected > 0 ? statusLabel : 'Tidak ditemukan'}</td>
-          </tr>`
+            <td style="color:${isAffected ? 'var(--success)' : 'var(--muted)'};">${escHtml(statusText)}</td>
+          </tr>`;
+          }
         )
         .join('');
     }
