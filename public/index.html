@@ -2328,6 +2328,10 @@
     let selectedFiles = [];
     let selectedFile = null;
     let currentOpname = null;
+    let cutRows = [];
+    let cutSourceOpname = null;
+    let cutSourceFromTab2 = false;
+    let cutSourceLabel = '';
 
     function showAlert(msg, type = 'error') {
       alertBox.textContent = msg;
@@ -2735,11 +2739,6 @@
     const cutKpiGrid = document.getElementById('cutKpiGrid');
     const cutTableBody = document.getElementById('cutTableBody');
     const cutEmptyNotice = document.getElementById('cutEmptyNotice');
-
-    let cutRows = [];
-    let cutSourceOpname = null;
-    let cutSourceFromTab2 = false;
-    let cutSourceLabel = '';
 
     function calcCutLength(row) {
       const route = parseFloat(row.routeLength) || 0;
