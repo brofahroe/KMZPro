@@ -5,6 +5,120 @@ function is9mPole(pole) {
   return /(?:^|[^0-9])9\s*(?:m(?![a-z])|-)/i.test(text);
 }
 
+/**
+ * Extract optical fiber core count (e.g. 24, 36, 48, 96, 144) from cable/folder/document text.
+ */
+function extractCableCore(text) {
+  const s = (text || '').toString().trim();
+  if (!s) return null;
+
+  let m = s.match(/(?:^|[^0-9])0?(12|24|36|48|72|96|144|288)\s*(?:CORE|C)(?![A-Z0-9])/i);
+  if (m) return parseInt(m[1], 10);
+
+  m = s.match(/(?:^|[^0-9])0?(\d{1,3})\s*(?:CORE|C)(?![A-Z0-9])/i);
+  if (m) {
+    const val = parseInt(m[1], 10);
+    if (val >= 2 && val <= 576) return val;
+  }
+
+  m = s.match(/[-_\s]0?(12|24|36|48|72|96|144|288)[-_\s]S\d+/i);
+  if (m) return parseInt(m[1], 10);
+
+  m = s.match(/[-_\s](012|024|036|048|072|096|144|288)(?:[-_\s]|$)/i);
+  if (m) return parseInt(m[1], 10);
+
+  return null;
+}
+
+/**
+ * Detect network role from text: 'hubfeeder' | 'mainfeeder' | 'subfeeder' | 'feeder' | null.
+ */
+function detectCableRole(text) {
+  const s = (text || '').toString();
+  if (!s) return null;
+
+  if (
+    /(?:^|[^A-Z])HUB[\s_-]*FEEDER(?=[^A-Z]|$)/i.test(s) ||
+    /(?:^|[^A-Z])(HFM|HF)(?=[^A-Z]|$)/i.test(s)
+  ) {
+    return 'hubfeeder';
+  }
+  if (
+    /(?:^|[^A-Z])MAIN[\s_-]*FEEDER(?=[^A-Z]|$)/i.test(s) ||
+    /(?:^|[^A-Z])(MFM|MF)(?=[^A-Z]|$)/i.test(s) ||
+    /(?:^|[^A-Z])(BACKBONE|UPLINK)(?=[^A-Z]|$)/i.test(s)
+  ) {
+    return 'mainfeeder';
+  }
+  if (
+    /(?:^|[^A-Z])SUB[\s_-]*FEEDER(?=[^A-Z]|$)/i.test(s) ||
+    /(?:^|[^A-Z])(SFM|SF)(?=[^A-Z]|$)/i.test(s)
+  ) {
+    return 'subfeeder';
+  }
+  if (/(?:^|[^A-Z])FEEDER(?=[^A-Z]|$)/i.test(s)) {
+    return 'feeder';
+  }
+  return null;
+}
+
+/**
+ * Resolve Dead-End accessory name based on network role and cable core size:
+ * - Cluster (distribusi) & Subfeeder for 24C/36C/48C (or default): "Dead-End Buaya 25-50"
+ * - Hub Feeder & Main Feeder (or cables > 48C): "Helical Dead-End <core>C"
+ */
+function resolveDeadEndType(cableRole, cableCore) {
+  const core = Number.isFinite(cableCore) && cableCore > 0 ? cableCore : null;
+  const isHelicalRole =
+    cableRole === 'hubfeeder' ||
+    cableRole === 'mainfeeder' ||
+    cableRole === 'feeder';
+
+  if (isHelicalRole) {
+    return core ? `Helical Dead-End ${core}C` : 'Helical Dead-End';
+  }
+
+  if (!core || core === 24 || core === 36 || core === 48 || core <= 48) {
+    return 'Dead-End Buaya 25-50';
+  }
+  return `Helical Dead-End ${core}C`;
+}
+
+function resolveCableClassification(cab, kmzData, networkMode) {
+  const candidates = [cab.name, cab.folder, kmzData.clusterTitle, kmzData.docName];
+
+  let cableCore = null;
+  for (const txt of candidates) {
+    cableCore = extractCableCore(txt);
+    if (cableCore) break;
+  }
+
+  let detectedRole = null;
+  for (const txt of candidates) {
+    detectedRole = detectCableRole(txt);
+    if (detectedRole) break;
+  }
+
+  let cableRole;
+  if (networkMode === 'distribusi') {
+    cableRole = 'cluster';
+  } else if (networkMode === 'subfeeder') {
+    cableRole = 'subfeeder';
+  } else if (networkMode === 'feeder') {
+    cableRole =
+      detectedRole === 'hubfeeder' || detectedRole === 'mainfeeder'
+        ? detectedRole
+        : 'mainfeeder';
+  } else {
+    cableRole =
+      detectedRole || (cab.cableKind === 'feeder' ? 'feeder' : 'cluster');
+  }
+
+  const isFeeder = cableRole !== 'cluster';
+  const deadEndType = resolveDeadEndType(cableRole, cableCore);
+  return { cableRole, cableCore, isFeeder, deadEndType };
+}
+
 function calcHasbelEffectiveLength(routeLen, slackLen, slackInterval, sparePercent) {
   const slackCount = Math.floor(routeLen / slackInterval) + 1;
   const totalSlackMeters = slackCount * slackLen;
@@ -56,6 +170,7 @@ function calculateOpname(kmzData, options = {}) {
   const poleRecords = sourcePoles.map((p) => ({
     ...p,
     deadEnd: 0,
+    deadEndByType: {},
     suspension: 0,
     slackHanger: 0,
     poleClamp: 0,
@@ -115,11 +230,20 @@ function calculateOpname(kmzData, options = {}) {
     }
   }
 
+  const cableClassifications = kmzData.cables.map((cab) =>
+    resolveCableClassification(cab, kmzData, networkMode)
+  );
+
+  function addDeadEnd(pole, qty, deadEndType) {
+    if (!qty) return;
+    pole.deadEnd += qty;
+    pole.deadEndByType[deadEndType] = (pole.deadEndByType[deadEndType] || 0) + qty;
+  }
+
   // 2. Trace each Cable route in order
-  for (const cab of kmzData.cables) {
-    const isFeeder =
-      networkMode === 'feeder' ||
-      (networkMode === 'auto' && cab.cableKind === 'feeder');
+  for (let cIdx = 0; cIdx < kmzData.cables.length; cIdx++) {
+    const cab = kmzData.cables[cIdx];
+    const { isFeeder, deadEndType: cabDeadEndType } = cableClassifications[cIdx];
 
     const onCable = [];
     for (const p of poleRecords) {
@@ -237,7 +361,7 @@ function calculateOpname(kmzData, options = {}) {
       const clampQty = isCrossing9m ? 2 : 1;
 
       if (isStart || isEnd) {
-        curr.deadEnd += 1;
+        addDeadEnd(curr, 1, cabDeadEndType);
         curr.poleClamp += clampQty;
         consecSusp = 0;
         curr.remarks.push(`Ujung ${cab.line}`);
@@ -254,7 +378,7 @@ function calculateOpname(kmzData, options = {}) {
           curr.remarks.push(`Crossing 9m (${Math.round(crossing9mDist)}m)`);
         }
       } else if (angle > angleThreshold) {
-        curr.deadEnd += 2;
+        addDeadEnd(curr, 2, cabDeadEndType);
         curr.poleClamp += clampQty;
         consecSusp = 0;
         curr.remarks.push(`Tikungan ${Math.round(angle)}°`);
@@ -262,19 +386,19 @@ function calculateOpname(kmzData, options = {}) {
           curr.remarks.push(`Crossing 9m (${Math.round(crossing9mDist)}m)`);
         }
       } else if (curr.hasFDT || curr.fatName || isSlackPoint) {
-        curr.deadEnd += 2;
+        addDeadEnd(curr, 2, cabDeadEndType);
         curr.poleClamp += clampQty;
         consecSusp = 0;
         if (isCrossing9m) {
           curr.remarks.push(`Crossing 9m (${Math.round(crossing9mDist)}m)`);
         }
       } else if (isCrossing9m) {
-        curr.deadEnd += 2;
+        addDeadEnd(curr, 2, cabDeadEndType);
         curr.poleClamp += 2;
         consecSusp = 0;
         curr.remarks.push(`Crossing 9m (${Math.round(crossing9mDist)}m)`);
       } else if (consecSusp >= maxConsecSusp) {
-        curr.deadEnd += 2;
+        addDeadEnd(curr, 2, cabDeadEndType);
         curr.poleClamp += 1;
         consecSusp = 0;
         curr.remarks.push(`Setelah ${maxConsecSusp} Susp`);
@@ -293,11 +417,36 @@ function calculateOpname(kmzData, options = {}) {
   });
 
   // 3. Summary totals
+  const deadEndByType = {};
+  for (const p of poleRecords) {
+    for (const [deType, qty] of Object.entries(p.deadEndByType)) {
+      if (qty > 0) {
+        deadEndByType[deType] = (deadEndByType[deType] || 0) + qty;
+      }
+    }
+  }
+
+  const deadEndTypes = Object.keys(deadEndByType);
+  const fallbackDeadEndType =
+    cableClassifications[0]?.deadEndType ||
+    resolveDeadEndType(
+      detectCableRole(kmzData.clusterTitle) || detectCableRole(kmzData.docName) || 'cluster',
+      extractCableCore(kmzData.clusterTitle) || extractCableCore(kmzData.docName)
+    );
+  const primaryDeadEndType =
+    deadEndTypes.length === 1
+      ? deadEndTypes[0]
+      : deadEndTypes.length === 0
+      ? fallbackDeadEndType
+      : null;
+
   const totals = {
     totalPoles: poleRecords.length,
     newPoles: poleRecords.filter((p) => p.isNew).length,
     existingPoles: poleRecords.filter((p) => !p.isNew).length,
     deadEnd: poleRecords.reduce((s, p) => s + p.deadEnd, 0),
+    deadEndByType,
+    primaryDeadEndType,
     suspension: poleRecords.reduce((s, p) => s + p.suspension, 0),
     slackHanger: poleRecords.reduce((s, p) => s + p.slackHanger, 0),
     poleClamp: poleRecords.reduce((s, p) => s + p.poleClamp, 0),
@@ -327,7 +476,7 @@ function calculateOpname(kmzData, options = {}) {
 
   return {
     clusterTitle: kmzData.clusterTitle,
-    cables: kmzData.cables.map((c) => {
+    cables: kmzData.cables.map((c, idx) => {
       const byLine = kmzData.fats.filter((f) => f.line === c.line).length;
       const fatCount =
         byLine > 0
@@ -335,13 +484,22 @@ function calculateOpname(kmzData, options = {}) {
           : kmzData.fats.filter(
               (f) => pointToLineProj(f.coord, c.pts).dist <= deviceSnapDist
             ).length;
-      const isFeeder =
-        networkMode === 'feeder' ||
-        (networkMode === 'auto' && c.cableKind === 'feeder');
+      const cls = cableClassifications[idx];
+      const jenisKabel = cls.cableCore
+        ? cls.isFeeder
+          ? `Feeder ${cls.cableCore}C`
+          : `ADSS ${cls.cableCore}C`
+        : cls.isFeeder
+        ? 'Feeder'
+        : 'ADSS';
       return {
         line: c.line,
         name: c.name,
-        cableKind: isFeeder ? 'feeder' : 'distribusi',
+        cableKind: cls.isFeeder ? 'feeder' : 'distribusi',
+        cableRole: cls.cableRole,
+        cableCore: cls.cableCore,
+        jenisKabel,
+        deadEndType: cls.deadEndType,
         nominalLength: c.nominalLength,
         length2D: c.length2D,
         fatCount,
@@ -353,24 +511,34 @@ function calculateOpname(kmzData, options = {}) {
       nominalLength: s.nominalLength,
       length2D: s.length2D,
     })),
-    rows: poleRecords.map((p) => ({
-      poleId: p.name,
-      label: p.label,
-      isNew: p.isNew,
-      line: p.line,
-      deadEnd: p.deadEnd,
-      suspension: p.suspension,
-      slackHanger: p.slackHanger,
-      poleClamp: p.poleClamp,
-      buldogGrip: p.buldogGrip,
-      jointClosure: p.jointClosure,
-      remark: p.remarks.join(', '),
-      chainage: p.chainage < 999999 ? Math.round(p.chainage * 10) / 10 : null,
-      lat: p.coord.lat,
-      lon: p.coord.lon,
-    })),
+    rows: poleRecords.map((p) => {
+      const rowDeadEndTypes = Object.keys(p.deadEndByType);
+      return {
+        poleId: p.name,
+        label: p.label,
+        isNew: p.isNew,
+        line: p.line,
+        deadEnd: p.deadEnd,
+        deadEndType: rowDeadEndTypes.join(' + '),
+        deadEndByType: p.deadEndByType,
+        suspension: p.suspension,
+        slackHanger: p.slackHanger,
+        poleClamp: p.poleClamp,
+        buldogGrip: p.buldogGrip,
+        jointClosure: p.jointClosure,
+        remark: p.remarks.join(', '),
+        chainage: p.chainage < 999999 ? Math.round(p.chainage * 10) / 10 : null,
+        lat: p.coord.lat,
+        lon: p.coord.lon,
+      };
+    }),
     totals,
   };
 }
 
-module.exports = { calculateOpname };
+module.exports = {
+  calculateOpname,
+  extractCableCore,
+  detectCableRole,
+  resolveDeadEndType,
+};

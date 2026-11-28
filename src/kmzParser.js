@@ -64,8 +64,8 @@ function extractLineStringsFromPm(pm) {
 function isFeederText(text) {
   const s = text || '';
   return (
-    /(SUB\s*FEEDER|HUB\s*FEEDER|MAIN\s*FEEDER|FEEDER|UPLINK|BACKBONE)/i.test(s) ||
-    /(?:^|[^A-Z])(MFM|MF|SFM|SF|HF)(?=[^A-Z]|$)/i.test(s)
+    /(SUB[\s_-]*FEEDER|HUB[\s_-]*FEEDER|MAIN[\s_-]*FEEDER|FEEDER|UPLINK|BACKBONE)/i.test(s) ||
+    /(?:^|[^A-Z])(MFM|MF|SFM|SF|HFM|HF)(?=[^A-Z]|$)/i.test(s)
   );
 }
 
@@ -166,6 +166,7 @@ function walkFolder(folder, currentLine, state, isDocRoot = false) {
         const isFeederName = isFeederText(cName);
         state.cables.push({
           name: cName,
+          folder: fName,
           line: activeLine || 'MAIN',
           cableKind: isFeederFolder || isFeederName || isFeederDoc ? 'feeder' : 'distribusi',
           pts,

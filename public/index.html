@@ -1160,9 +1160,10 @@
             <div class="form-group">
               <label for="networkMode">Jenis Jaringan / Kabel</label>
               <select id="networkMode">
-                <option value="auto">Auto-Deteksi (Distribusi / Feeder)</option>
-                <option value="distribusi">Distribusi (Slack di FAT / FDT)</option>
-                <option value="feeder">Subfeeder / SF / MF / HF / Feeder (Slack 400m, Ujung Kabel &amp; JC per Hasbel)</option>
+                <option value="auto">Auto-Deteksi (Cluster / Subfeeder / Hub &amp; Main Feeder)</option>
+                <option value="distribusi">Cluster / Distribusi (Slack FAT/FDT, Dead-End Buaya 25-50)</option>
+                <option value="subfeeder">Subfeeder / SF (Slack 400m &amp; JC, Dead-End Buaya 25-50)</option>
+                <option value="feeder">Hub Feeder / Main Feeder / HF / MF (Slack 400m &amp; JC, Helical Dead-End)</option>
               </select>
             </div>
             <div class="form-group">
@@ -1226,7 +1227,7 @@
                   <th>POLE ID</th>
                   <th>TIPE POLE</th>
                   <th>LINE</th>
-                  <th class="num">DEAD END</th>
+                  <th id="thDeadEnd" class="num">DEAD END</th>
                   <th class="num">SUSPENSION</th>
                   <th class="num">SLACK HANGER</th>
                   <th class="num">POLE CLAMP</th>
@@ -1302,7 +1303,8 @@
           <div class="guide-card">
             <h3>⚙️ Penjelasan Parameter</h3>
             <ul class="guide-list">
-              <li><strong>Jenis Jaringan / Kabel:</strong> <span class="guide-code">Auto-Deteksi</span> mengenali Distribusi vs Feeder dari nama kabel (<span class="guide-code">FEEDER</span>, <span class="guide-code">MF</span>, <span class="guide-code">SF</span>, <span class="guide-code">HF</span>, <span class="guide-code">BACKBONE</span>). Mode <strong>Distribusi</strong> menempatkan Slack di titik FDT/FAT/Slack. Mode <strong>Feeder</strong> otomatis menambah Slack di ujung kabel, tiap <strong>400 m</strong>, dan di titik <strong>JC</strong> per hasbel.</li>
+              <li><strong>Jenis Jaringan / Kabel:</strong> <span class="guide-code">Auto-Deteksi</span> mengenali Cluster, Subfeeder (<span class="guide-code">SF</span> / <span class="guide-code">SUB_FEEDER</span>), dan Hub/Main Feeder (<span class="guide-code">HF</span> / <span class="guide-code">HUB_FEEDER</span> / <span class="guide-code">MF</span> / <span class="guide-code">MFM</span> / <span class="guide-code">MAIN_FEEDER</span>). Mode <strong>Cluster</strong> menempatkan Slack di titik FDT/FAT/Slack. Mode <strong>Subfeeder</strong> &amp; <strong>Hub/Main Feeder</strong> otomatis menambah Slack di ujung kabel, tiap <strong>400 m</strong>, dan di titik <strong>JC</strong> per hasbel.</li>
+              <li><strong>Aturan Jenis Dead-End:</strong> Untuk <strong>Cluster &amp; Subfeeder</strong> (kabel <span class="guide-code">24C</span>, <span class="guide-code">36C</span>, <span class="guide-code">48C</span>) otomatis menggunakan <strong>Dead-End Buaya 25-50</strong>. Untuk <strong>Hub Feeder &amp; Main Feeder</strong> otomatis menggunakan <strong>Helical Dead-End</strong> dengan akhiran ukuran kabel (misal <span class="guide-code">Helical Dead-End 96C</span>, <span class="guide-code">Helical Dead-End 144C</span>).</li>
               <li><strong>Batas Sudut Tikungan Dead End (°)</strong> (default <span class="guide-code">30°</span>): Tiang dengan sudut belokan melebihi batas ini otomatis diberi <strong>2 Dead End</strong> + <strong>Pole Clamp</strong>.</li>
               <li><strong>Maks. Suspension Berurutan</strong> (default <span class="guide-code">2</span>): Setelah jumlah Suspension berturut-turut mencapai batas, tiang berikutnya otomatis menjadi titik tarik (<strong>2 Dead End</strong> + <strong>1 Pole Clamp</strong>).</li>
               <li><strong>Batas Jarak 2 Pole 9m (m)</strong> (default <span class="guide-code">60 m</span>): Dua tiang 9m berurutan dengan jarak kurang dari batas ini dideteksi sebagai crossing → mendapat <strong>Dead End</strong> + <strong>2 Pole Clamp</strong>.</li>
@@ -1364,10 +1366,13 @@
           style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
           <div>
             <h2 style="font-size:1.15rem;">Penghitung Kabel Potongan</h2>
-            <p style="font-size:0.85rem; color:var(--muted);">Otomatis terisi dari panjang rute kabel &amp; jumlah FAT
-              di KMZ. Semua nilai dapat diubah manual.</p>
+            <p style="font-size:0.85rem; color:var(--muted);">Muat KMZ langsung di tab ini atau otomatis dari Tab 1. Semua nilai dapat diubah manual.</p>
+            <div id="cutSourceInfo" class="hidden" style="margin-top:6px; font-size:0.8rem; color:var(--success); font-weight:600;"></div>
           </div>
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <input type="file" id="cutKmzInput" accept=".kmz,.kml" multiple class="hidden" />
+            <button id="btnLoadCutKmz" class="btn-primary">📂 Load KMZ</button>
+            <button id="btnUseTab1Cut" class="btn-secondary" disabled>Pakai Data Tab 1</button>
             <button id="btnResetCutKmz" class="btn-secondary" disabled>Reset ke Data KMZ</button>
             <button id="btnAddCutRow" class="btn-secondary">+ Tambah Line Manual</button>
             <button id="btnExportCutCsv" class="btn-success">Download CSV</button>
@@ -1399,9 +1404,9 @@
 
       <div class="card">
         <div id="cutEmptyNotice" style="color:var(--muted); font-size:0.9rem; margin-bottom:10px;">
-          Belum ada data KMZ. Unggah &amp; proses file KMZ di tab <strong>Opname Aksesoris &amp; Pole</strong>, atau
-          klik <strong>+ Tambah Line Manual</strong>.
+          Belum ada data KMZ. Klik <strong>📂 Load KMZ</strong> langsung di tab ini, unggah &amp; proses file KMZ di tab <strong>Opname Acc &amp; Pole</strong>, atau klik <strong>+ Tambah Line Manual</strong>.
         </div>
+        <div id="cutCableTypeBadges" class="pole-badges hidden" style="margin-top:0; margin-bottom:12px;"></div>
         <div class="table-wrap">
           <table>
             <thead>
@@ -1409,11 +1414,12 @@
                 <th>NO</th>
                 <th>LINE</th>
                 <th>NAMA KABEL (KMZ)</th>
+                <th>JENIS KABEL</th>
                 <th>TIPE KABEL</th>
                 <th class="num" style="white-space:normal; width:82px; line-height:1.2;">PANJANG RUTE (m)</th>
                 <th class="num" style="white-space:normal; width:74px; line-height:1.2;">JUMLAH FAT / SLACK</th>
                 <th class="num" style="white-space:normal; width:74px; line-height:1.2;">PANJANG SLACK (m)</th>
-                <th class="num" style="white-space:normal; width:64px; line-height:1.2;">FAKTOR (×)</th>
+                <th class="num" style="white-space:normal; width:72px; line-height:1.2;">FAKTOR (×)</th>
                 <th class="num">KABEL POTONG (m)</th>
                 <th class="num">AKSI</th>
               </tr>
@@ -1433,8 +1439,8 @@
             </div>
           </div>
           <div class="guide-pills">
-            <span class="guide-pill">Sumber Data: <strong>Otomatis dari Tab 1</strong> atau <strong>Input Manual</strong></span>
-            <span class="guide-pill">Perhitungan: <strong>Real-time</strong></span>
+            <span class="guide-pill">Sumber Data: <strong>Load KMZ Langsung</strong>, <strong>Tab 1</strong>, atau <strong>Manual</strong></span>
+            <span class="guide-pill">Perhitungan: <strong>Real-time + Rekap Jenis Kabel</strong></span>
             <span class="guide-pill">Output: <strong>Kabel_Potongan.csv</strong></span>
           </div>
         </div>
@@ -1445,8 +1451,8 @@
             <div class="guide-step">
               <span class="guide-step-num">1</span>
               <div>
-                <h4>Muat Data KMZ atau Tambah Manual</h4>
-                <p>Proses file KMZ di Tab <strong>Opname Acc &amp; Pole</strong> agar tabel terisi otomatis. Jika ingin menghitung tanpa KMZ, klik tombol <strong>+ Tambah Line Manual</strong>.</p>
+                <h4>Load KMZ Terpisah atau dari Tab 1</h4>
+                <p>Klik <strong>📂 Load KMZ</strong> langsung di tab ini untuk memuat 1 atau banyak file KMZ/KML secara terpisah (tanpa mengubah data Tab 1), gunakan data otomatis dari Tab 1 (atau tombol <strong>Pakai Data Tab 1</strong>), maupun klik <strong>+ Tambah Line Manual</strong>.</p>
               </div>
             </div>
             <div class="guide-step">
@@ -1460,7 +1466,7 @@
               <span class="guide-step-num">3</span>
               <div>
                 <h4>Sesuaikan Nilai per Baris</h4>
-                <p>Semua kolom di tabel (Line, Nama Kabel, Tipe Kabel, Panjang Rute, Jumlah FAT/Slack, Panjang Slack, dan Faktor) bisa diedit langsung. Hasil <strong>Kabel Potong (m)</strong> &amp; KPI total otomatis diperbarui.</p>
+                <p>Semua kolom di tabel (Line, Nama Kabel, <strong>Jenis Kabel</strong>, Tipe Kabel, Panjang Rute, Jumlah FAT/Slack, Panjang Slack, dan Faktor) bisa diedit langsung. Hasil <strong>Kabel Potong (m)</strong>, rekap per Jenis Kabel, &amp; KPI total otomatis diperbarui.</p>
               </div>
             </div>
             <div class="guide-step">
@@ -2353,6 +2359,8 @@
       if (btnUseTab1Clean) btnUseTab1Clean.disabled = false;
       const btnUseTab1Split = document.getElementById('btnUseTab1SplitKmz');
       if (btnUseTab1Split) btnUseTab1Split.disabled = false;
+      const btnUseTab1CutEl = document.getElementById('btnUseTab1Cut');
+      if (btnUseTab1CutEl) btnUseTab1CutEl.disabled = false;
       hideAlert();
     }
 
@@ -2443,9 +2451,36 @@
       const t = opname.totals;
       const hasFeeder = (opname.cables || []).some((c) => c.cableKind === 'feeder');
       const cableLabel = hasFeeder ? 'Kabel Feeder / MF / SF' : 'Kabel (Label KMZ)';
+
+      const deadEndEntries = Object.entries(t.deadEndByType || {}).filter(([, qty]) => qty > 0);
+      const deadEndKpis =
+        deadEndEntries.length > 0
+          ? deadEndEntries.map(([deType, qty]) => ({
+              label: deType,
+              value: qty,
+              sub: 'pcs',
+            }))
+          : [
+              {
+                label: t.primaryDeadEndType || 'Dead End',
+                value: t.deadEnd,
+                sub: 'pcs',
+              },
+            ];
+
+      const thDeadEnd = document.getElementById('thDeadEnd');
+      if (thDeadEnd) {
+        thDeadEnd.textContent =
+          deadEndEntries.length === 1
+            ? deadEndEntries[0][0].toUpperCase()
+            : deadEndEntries.length === 0 && t.primaryDeadEndType
+              ? t.primaryDeadEndType.toUpperCase()
+              : 'DEAD END';
+      }
+
       const kpis = [
         { label: 'Total Pole', value: t.totalPoles, sub: `New: ${t.newPoles} | Existing: ${t.existingPoles}` },
-        { label: 'Dead End', value: t.deadEnd, sub: 'pcs' },
+        ...deadEndKpis,
         { label: 'Suspension', value: t.suspension, sub: 'pcs' },
         { label: 'Slack Hanger', value: t.slackHanger, sub: 'pcs' },
         { label: 'Pole Clamp', value: t.poleClamp, sub: 'pcs' },
@@ -2456,7 +2491,7 @@
       ];
       kpiGrid.innerHTML = kpis
         .map(
-          (k) => `<div class="kpi"><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="sub">${k.sub}</div></div>`
+          (k) => `<div class="kpi"><div class="label">${escHtml(k.label)}</div><div class="value">${k.value}</div><div class="sub">${escHtml(k.sub)}</div></div>`
         )
         .join('');
 
@@ -2470,13 +2505,21 @@
         lines.map((l) => `<option value="${l}">${l}</option>`).join('');
 
       renderTable();
-      populateCutRowsFromOpname(opname);
+      if (btnUseTab1Cut) btnUseTab1Cut.disabled = false;
+      if (!cutSourceFromTab2) {
+        populateCutRowsFromOpname(opname, {
+          fromTab2: false,
+          sourceLabel: `Data dari Tab 1 — ${opname.clusterTitle || '-'}`,
+        });
+      }
     }
 
     function renderTable() {
       if (!currentOpname) return;
       const q = searchInput.value.trim().toLowerCase();
       const line = lineFilter.value;
+      const isMixedDeadEnd =
+        Object.keys(currentOpname.totals?.deadEndByType || {}).length > 1;
 
       const filtered = currentOpname.rows.filter((r) => {
         if (line !== 'ALL' && r.line !== line) return false;
@@ -2485,6 +2528,7 @@
           r.poleId.toLowerCase().includes(q) ||
           r.label.toLowerCase().includes(q) ||
           (r.cluster || '').toLowerCase().includes(q) ||
+          (r.deadEndType || '').toLowerCase().includes(q) ||
           r.remark.toLowerCase().includes(q)
         );
       });
@@ -2498,7 +2542,7 @@
             <td><strong>${r.poleId}</strong>${r.cluster ? `<div style="font-size:0.72rem; color:var(--muted);">${r.cluster}</div>` : ''}</td>
             <td>${r.label}</td>
             <td><span class="pill-line">${r.line}</span></td>
-            <td class="num">${r.deadEnd || ''}</td>
+            <td class="num">${r.deadEnd || ''}${isMixedDeadEnd && r.deadEnd && r.deadEndType ? `<div style="font-size:0.7rem; color:var(--primary); font-weight:500;">${escHtml(r.deadEndType)}</div>` : ''}</td>
             <td class="num">${r.suspension || ''}</td>
             <td class="num">${r.slackHanger || ''}</td>
             <td class="num">${r.poleClamp || ''}</td>
@@ -2547,7 +2591,7 @@
       if (scrollTop && window.innerWidth <= 768) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
-      if (target === 'cutcable' && selectedFile && !currentOpname) {
+      if (target === 'cutcable' && !cutSourceFromTab2 && selectedFile && !currentOpname && cutRows.length === 0) {
         btnAnalyze.click();
       }
     }
@@ -2680,14 +2724,22 @@
     const globalSlackEl = document.getElementById('globalSlack');
     const globalFactorEl = document.getElementById('globalFactor');
     const btnApplyGlobalCut = document.getElementById('btnApplyGlobalCut');
+    const btnLoadCutKmz = document.getElementById('btnLoadCutKmz');
+    const cutKmzInput = document.getElementById('cutKmzInput');
+    const btnUseTab1Cut = document.getElementById('btnUseTab1Cut');
     const btnResetCutKmz = document.getElementById('btnResetCutKmz');
     const btnAddCutRow = document.getElementById('btnAddCutRow');
     const btnExportCutCsv = document.getElementById('btnExportCutCsv');
+    const cutSourceInfo = document.getElementById('cutSourceInfo');
+    const cutCableTypeBadges = document.getElementById('cutCableTypeBadges');
     const cutKpiGrid = document.getElementById('cutKpiGrid');
     const cutTableBody = document.getElementById('cutTableBody');
     const cutEmptyNotice = document.getElementById('cutEmptyNotice');
 
     let cutRows = [];
+    let cutSourceOpname = null;
+    let cutSourceFromTab2 = false;
+    let cutSourceLabel = '';
 
     function calcCutLength(row) {
       const route = parseFloat(row.routeLength) || 0;
@@ -2707,10 +2759,33 @@
 
     function detectCableType(name) {
       const s = name || '';
-      return /(SUB\s*FEEDER|HUB\s*FEEDER|MAIN\s*FEEDER|FEEDER|UPLINK|BACKBONE)/i.test(s) ||
-        /(?:^|[^A-Z])(MFM|MF|SFM|SF|HF)(?=[^A-Z]|$)/i.test(s)
+      return /(SUB[\s_-]*FEEDER|HUB[\s_-]*FEEDER|MAIN[\s_-]*FEEDER|FEEDER|UPLINK|BACKBONE)/i.test(s) ||
+        /(?:^|[^A-Z])(MFM|MF|SFM|SF|HFM|HF)(?=[^A-Z]|$)/i.test(s)
         ? 'feeder'
         : 'distribusi';
+    }
+
+    function extractCutCableCore(name) {
+      const s = (name || '').toString().trim();
+      if (!s) return null;
+      let m = s.match(/(?:^|[^0-9])0?(12|24|36|48|72|96|144|288)\s*(?:CORE|C)(?![A-Z0-9])/i);
+      if (m) return parseInt(m[1], 10);
+      m = s.match(/(?:^|[^0-9])0?(\d{1,3})\s*(?:CORE|C)(?![A-Z0-9])/i);
+      if (m) {
+        const v = parseInt(m[1], 10);
+        if (v >= 2 && v <= 576) return v;
+      }
+      m = s.match(/[-_\s]0?(12|24|36|48|72|96|144|288)[-_\s]S\d+/i);
+      if (m) return parseInt(m[1], 10);
+      m = s.match(/[-_\s](012|024|036|048|072|096|144|288)(?:[-_\s]|$)/i);
+      if (m) return parseInt(m[1], 10);
+      return null;
+    }
+
+    function detectJenisKabel(name, cableType, fallbackCore = null) {
+      const core = extractCutCableCore(name) || fallbackCore;
+      const prefix = cableType === 'feeder' ? 'Feeder' : 'ADSS';
+      return core ? `${prefix} ${core}C` : prefix;
     }
 
     function calcFeederSlackCount(routeLength) {
@@ -2718,9 +2793,25 @@
       return len > 0 ? Math.ceil(len / 400) : 0;
     }
 
-    function populateCutRowsFromOpname(opname) {
+    function updateCutSourceBanner() {
+      if (!cutSourceInfo) return;
+      if (cutSourceLabel) {
+        cutSourceInfo.textContent = `Sumber: ${cutSourceLabel}`;
+        cutSourceInfo.classList.remove('hidden');
+      } else {
+        cutSourceInfo.textContent = '';
+        cutSourceInfo.classList.add('hidden');
+      }
+    }
+
+    function populateCutRowsFromOpname(opname, { fromTab2 = false, sourceLabel = '' } = {}) {
       const defaultSlack = parseFloat(globalSlackEl.value) || 20;
       const defaultFactor = parseFloat(globalFactorEl.value) || 1.05;
+      cutSourceOpname = opname;
+      cutSourceFromTab2 = Boolean(fromTab2);
+      cutSourceLabel = sourceLabel || (opname?.clusterTitle ? `Data dari Tab 1 — ${opname.clusterTitle}` : '');
+      updateCutSourceBanner();
+
       cutRows = (opname.cables || []).map((c) => {
         const fallbackFat = (opname.rows || []).filter(
           (r) => r.line === c.line && r.remark && r.remark.includes('FAT ')
@@ -2729,9 +2820,13 @@
         const routeLen = c.length2D ?? c.nominalLength ?? 0;
         const cableType = c.cableKind || detectCableType(c.name);
         const fatVal = cableType === 'feeder' ? calcFeederSlackCount(routeLen) : kmzFat;
+        const jenisKabel = c.jenisKabel || detectJenisKabel(c.name, cableType, c.cableCore);
         return {
           line: c.line || 'MAIN',
           name: c.name || '-',
+          jenisKabel,
+          jenisKabelManual: false,
+          cableCore: c.cableCore || extractCutCableCore(c.name) || null,
           cableType,
           routeLength: routeLen,
           fatCount: fatVal,
@@ -2742,8 +2837,33 @@
           factor: defaultFactor,
         };
       });
-      btnResetCutKmz.disabled = cutRows.length === 0;
+      btnResetCutKmz.disabled = !cutSourceOpname || cutRows.length === 0;
       renderCutTable();
+    }
+
+    function renderCutCableTypeBadges() {
+      if (!cutCableTypeBadges) return;
+      if (cutRows.length === 0) {
+        cutCableTypeBadges.classList.add('hidden');
+        cutCableTypeBadges.innerHTML = '';
+        return;
+      }
+      const byType = {};
+      for (const r of cutRows) {
+        const key = (r.jenisKabel || '').trim() || (r.cableType === 'feeder' ? 'Feeder' : 'ADSS');
+        if (!byType[key]) byType[key] = { count: 0, totalCut: 0, totalCeil: 0 };
+        const cutLen = calcCutLength(r);
+        byType[key].count += 1;
+        byType[key].totalCut += cutLen;
+        byType[key].totalCeil += Math.ceil(cutLen);
+      }
+      cutCableTypeBadges.innerHTML = Object.entries(byType)
+        .map(
+          ([typeName, info]) =>
+            `<span class="badge">${escHtml(typeName)}: <strong>${info.totalCeil} m</strong> <span style="color:var(--muted);">(${info.count} line)</span></span>`
+        )
+        .join('');
+      cutCableTypeBadges.classList.remove('hidden');
     }
 
     function renderCutTable() {
@@ -2769,8 +2889,9 @@
           return `
           <tr>
             <td>${idx + 1}</td>
-            <td><input type="text" class="inline-input text-left" style="width:165px;" value="${escHtml(r.line)}" data-idx="${idx}" data-field="line" /></td>
-            <td><input type="text" class="inline-input text-left" style="width:185px;" value="${escHtml(r.name)}" data-idx="${idx}" data-field="name" /></td>
+            <td><input type="text" class="inline-input text-left" style="width:155px;" value="${escHtml(r.line)}" data-idx="${idx}" data-field="line" /></td>
+            <td><input type="text" class="inline-input text-left" style="width:175px;" value="${escHtml(r.name)}" data-idx="${idx}" data-field="name" /></td>
+            <td><input type="text" class="inline-input text-left" style="width:105px;" value="${escHtml(r.jenisKabel || '')}" placeholder="ADSS 24C" data-idx="${idx}" data-field="jenisKabel" data-jenis-input="${idx}" /></td>
             <td>
               <select class="inline-input text-left" style="width:130px;" data-idx="${idx}" data-field="cableType">
                 <option value="distribusi" ${r.cableType === 'distribusi' ? 'selected' : ''}>Distribusi (FAT)</option>
@@ -2780,7 +2901,7 @@
             <td class="num"><input type="number" class="inline-input" style="width:76px;" step="0.1" min="0" value="${r.routeLength}" data-idx="${idx}" data-field="routeLength" /></td>
             <td class="num"><input type="number" class="inline-input" style="width:58px;" step="1" min="0" value="${r.fatCount}" data-idx="${idx}" data-field="fatCount" data-fat-input="${idx}" />${fatHint}</td>
             <td class="num"><input type="number" class="inline-input" style="width:58px;" step="1" min="0" value="${r.slackLength}" data-idx="${idx}" data-field="slackLength" /></td>
-            <td class="num"><input type="number" class="inline-input" style="width:56px;" step="0.01" min="0.1" value="${r.factor}" data-idx="${idx}" data-field="factor" /></td>
+            <td class="num"><input type="number" class="inline-input" style="width:68px;" step="0.01" min="0.1" value="${r.factor}" data-idx="${idx}" data-field="factor" /></td>
             <td class="num" style="font-weight:700; color:var(--primary); font-size:0.95rem;" data-cut-result="${idx}">${cutLen.toFixed(2)} m <span style="color:var(--muted); font-weight:400; font-size:0.78rem;">(${Math.ceil(cutLen)} m)</span></td>
             <td class="num"><button class="btn-danger-sm" data-del-cut="${idx}">Hapus</button></td>
           </tr>`;
@@ -2788,6 +2909,7 @@
         .join('');
 
       renderCutKpis(totalRoute, totalFat, totalCut);
+      renderCutCableTypeBadges();
     }
 
     function renderCutKpis(totalRoute, totalFat, totalCut) {
@@ -2819,6 +2941,7 @@
         totalCut += calcCutLength(row);
       }
       renderCutKpis(totalRoute, totalFat, totalCut);
+      renderCutCableTypeBadges();
     }
 
     cutTableBody.addEventListener('input', (e) => {
@@ -2828,7 +2951,9 @@
       const i = Number(idx);
       cutRows[i][field] = e.target.value;
 
-      if (field === 'name') {
+      if (field === 'jenisKabel') {
+        cutRows[i].jenisKabelManual = true;
+      } else if (field === 'name') {
         const detected = detectCableType(e.target.value);
         if (detected !== cutRows[i].cableType) {
           cutRows[i].cableType = detected;
@@ -2840,6 +2965,11 @@
           if (selEl) selEl.value = detected;
           const fatEl = cutTableBody.querySelector(`[data-fat-input="${i}"]`);
           if (fatEl) fatEl.value = cutRows[i].fatCount;
+        }
+        if (!cutRows[i].jenisKabelManual) {
+          cutRows[i].jenisKabel = detectJenisKabel(e.target.value, cutRows[i].cableType, cutRows[i].cableCore);
+          const jenisEl = cutTableBody.querySelector(`[data-jenis-input="${i}"]`);
+          if (jenisEl) jenisEl.value = cutRows[i].jenisKabel;
         }
       } else if (field === 'routeLength' && cutRows[i].cableType === 'feeder') {
         cutRows[i].fatCount = calcFeederSlackCount(e.target.value);
@@ -2860,6 +2990,9 @@
         cutRows[i].cableType === 'feeder'
           ? calcFeederSlackCount(cutRows[i].routeLength)
           : (cutRows[i].kmzFatCount ?? 0);
+      if (!cutRows[i].jenisKabelManual) {
+        cutRows[i].jenisKabel = detectJenisKabel(cutRows[i].name, cutRows[i].cableType, cutRows[i].cableCore);
+      }
       renderCutTable();
     });
 
@@ -2871,6 +3004,54 @@
       }
     });
 
+    btnLoadCutKmz.addEventListener('click', () => {
+      cutKmzInput.value = '';
+      cutKmzInput.click();
+    });
+
+    cutKmzInput.addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files || []).filter((f) => /\.(kmz|kml)$/i.test(f.name));
+      if (files.length === 0) return;
+      hideAlert();
+      btnLoadCutKmz.disabled = true;
+      btnLoadCutKmz.textContent = 'Memuat KMZ...';
+      try {
+        const fd = new FormData();
+        for (const f of files) {
+          fd.append('kmzFiles', f);
+        }
+        fd.append('networkMode', 'auto');
+        const res = await fetch('/api/analyze', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal memuat file KMZ');
+        const labelNames =
+          files.length === 1
+            ? files[0].name
+            : `${files.length} file (${files.slice(0, 2).map((f) => f.name).join(', ')}${files.length > 2 ? ` +${files.length - 2}` : ''})`;
+        populateCutRowsFromOpname(data.opname, {
+          fromTab2: true,
+          sourceLabel: `Load KMZ Tab 2 — ${labelNames}`,
+        });
+      } catch (err) {
+        showAlert(err.message, 'error');
+      } finally {
+        btnLoadCutKmz.disabled = false;
+        btnLoadCutKmz.textContent = '📂 Load KMZ';
+      }
+    });
+
+    btnUseTab1Cut.addEventListener('click', () => {
+      if (currentOpname) {
+        populateCutRowsFromOpname(currentOpname, {
+          fromTab2: false,
+          sourceLabel: `Data dari Tab 1 — ${currentOpname.clusterTitle || '-'}`,
+        });
+      } else if (selectedFile) {
+        cutSourceFromTab2 = false;
+        btnAnalyze.click();
+      }
+    });
+
     btnApplyGlobalCut.addEventListener('click', () => {
       const slack = parseFloat(globalSlackEl.value) || 0;
       const factor = parseFloat(globalFactorEl.value) || 1.05;
@@ -2879,8 +3060,16 @@
     });
 
     btnResetCutKmz.addEventListener('click', () => {
-      if (currentOpname) {
-        populateCutRowsFromOpname(currentOpname);
+      if (cutSourceOpname) {
+        populateCutRowsFromOpname(cutSourceOpname, {
+          fromTab2: cutSourceFromTab2,
+          sourceLabel: cutSourceLabel,
+        });
+      } else if (currentOpname) {
+        populateCutRowsFromOpname(currentOpname, {
+          fromTab2: false,
+          sourceLabel: `Data dari Tab 1 — ${currentOpname.clusterTitle || '-'}`,
+        });
       }
     });
 
@@ -2888,6 +3077,9 @@
       cutRows.push({
         line: `LINE ${String.fromCharCode(65 + cutRows.length)}`,
         name: 'Kabel Manual',
+        jenisKabel: 'ADSS 24C',
+        jenisKabelManual: false,
+        cableCore: 24,
         cableType: 'distribusi',
         routeLength: 0,
         fatCount: 0,
@@ -2901,7 +3093,7 @@
 
     btnExportCutCsv.addEventListener('click', () => {
       if (cutRows.length === 0) return;
-      const header = ['NO', 'LINE', 'NAMA KABEL', 'TIPE KABEL', 'PANJANG RUTE (m)', 'JUMLAH FAT/SLACK', 'PANJANG SLACK (m)', 'FAKTOR', 'KABEL POTONG (m)', 'PEMBULATAN ATAS (m)'];
+      const header = ['NO', 'LINE', 'NAMA KABEL', 'JENIS KABEL', 'TIPE KABEL', 'PANJANG RUTE (m)', 'JUMLAH FAT/SLACK', 'PANJANG SLACK (m)', 'FAKTOR', 'KABEL POTONG (m)', 'PEMBULATAN ATAS (m)'];
       const lines = [header.join(',')];
       cutRows.forEach((r, i) => {
         const cutLen = calcCutLength(r);
@@ -2909,6 +3101,7 @@
           i + 1,
           `"${(r.line || '').replace(/"/g, '""')}"`,
           `"${(r.name || '').replace(/"/g, '""')}"`,
+          `"${(r.jenisKabel || '').replace(/"/g, '""')}"`,
           r.cableType === 'feeder' ? 'Feeder/SF/MF/HF' : 'Distribusi',
           r.routeLength,
           r.fatCount,

@@ -33,7 +33,7 @@ function parseOptions(body = {}) {
     body.includeExisting === undefined
       ? true
       : body.includeExisting === 'true' || body.includeExisting === true;
-  const networkMode = ['auto', 'distribusi', 'feeder'].includes(body.networkMode)
+  const networkMode = ['auto', 'distribusi', 'subfeeder', 'feeder'].includes(body.networkMode)
     ? body.networkMode
     : 'auto';
 
@@ -82,12 +82,15 @@ async function processOpnameFiles(files, options) {
   const combinedCables = [];
   const combinedSlings = [];
   const poleByLabel = {};
+  const deadEndByType = {};
   const zeroAccPoles = [];
   const totals = {
     totalPoles: 0,
     newPoles: 0,
     existingPoles: 0,
     deadEnd: 0,
+    deadEndByType,
+    primaryDeadEndType: null,
     suspension: 0,
     slackHanger: 0,
     poleClamp: 0,
@@ -114,6 +117,9 @@ async function processOpnameFiles(files, options) {
     totals.newPoles += t.newPoles;
     totals.existingPoles += t.existingPoles;
     totals.deadEnd += t.deadEnd;
+    for (const [deType, cnt] of Object.entries(t.deadEndByType || {})) {
+      deadEndByType[deType] = (deadEndByType[deType] || 0) + cnt;
+    }
     totals.suspension += t.suspension;
     totals.slackHanger += t.slackHanger;
     totals.poleClamp += t.poleClamp;
@@ -127,6 +133,10 @@ async function processOpnameFiles(files, options) {
     }
     zeroAccPoles.push(...t.zeroAccPoles);
   }
+
+  const combinedDeadEndTypes = Object.keys(deadEndByType);
+  totals.primaryDeadEndType =
+    combinedDeadEndTypes.length === 1 ? combinedDeadEndTypes[0] : null;
 
   const opname = {
     clusterTitle: `${opnameList.length} Cluster (${opnameList.map((o) => o.clusterTitle).join(', ')})`,

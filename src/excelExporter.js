@@ -30,12 +30,23 @@ async function buildOpnameWorkbookBuffer(opname) {
   ws.getCell('B1').value = opname.clusterTitle || '-';
   ws.getRow(1).font = { bold: true, size: 11 };
 
+  const deadEndEntries = Object.entries(opname.totals.deadEndByType || {}).filter(
+    ([, qty]) => qty > 0
+  );
+  const singleDeadEndLabel =
+    deadEndEntries.length === 1
+      ? deadEndEntries[0][0].toUpperCase()
+      : deadEndEntries.length === 0 && opname.totals.primaryDeadEndType
+      ? opname.totals.primaryDeadEndType.toUpperCase()
+      : null;
+  const deadEndColHeader = singleDeadEndLabel || 'DEAD END';
+
   // Row 2: Table headers
   const headers = [
     'POLE ID',
     'TIPE POLE',
     'LINE',
-    'DEAD END',
+    deadEndColHeader,
     'SUSPENSION',
     'SLACK HANGER',
     'POLE CLAMP',
@@ -148,8 +159,13 @@ async function buildOpnameWorkbookBuffer(opname) {
     };
   }
 
+  const deadEndRekapRows =
+    deadEndEntries.length > 1
+      ? deadEndEntries.map(([deType, qty]) => [deType.toUpperCase(), qty, 'pcs'])
+      : [[deadEndColHeader, { formula: `D${sumRowIdx}`, result: opname.totals.deadEnd }, 'pcs']];
+
   const rekapItems = [
-    ['DEAD END', { formula: `D${sumRowIdx}`, result: opname.totals.deadEnd }, 'pcs'],
+    ...deadEndRekapRows,
     ['SUSPENSION', { formula: `E${sumRowIdx}`, result: opname.totals.suspension }, 'pcs'],
     ['SLACK HANGER', { formula: `F${sumRowIdx}`, result: opname.totals.slackHanger }, 'pcs'],
     ['POLE CLAMP', { formula: `G${sumRowIdx}`, result: opname.totals.poleClamp }, 'pcs'],
@@ -195,10 +211,10 @@ async function buildOpnameWorkbookBuffer(opname) {
 
   // Set column widths cleanly
   ws.columns = [
-    { width: 28 },
+    { width: 32 },
     { width: 12 },
     { width: 12 },
-    { width: 12 },
+    { width: Math.max(14, deadEndColHeader.length + 3) },
     { width: 13 },
     { width: 15 },
     { width: 13 },
@@ -232,6 +248,7 @@ async function buildMultiOpnameWorkbookBuffer(opnameList, combinedOpname) {
     'NEW POLE',
     'EXISTING POLE',
     'DEAD END',
+    'JENIS DEAD END',
     'SUSPENSION',
     'SLACK HANGER',
     'POLE CLAMP',
@@ -254,6 +271,11 @@ async function buildMultiOpnameWorkbookBuffer(opnameList, combinedOpname) {
   let rr = 3;
   opnameList.forEach((op, idx) => {
     const t = op.totals;
+    const deTypes = Object.keys(t.deadEndByType || {});
+    const deLabel =
+      deTypes.length > 0
+        ? deTypes.join(', ')
+        : t.primaryDeadEndType || 'Dead-End Buaya 25-50';
     const row = wsRekap.getRow(rr);
     row.values = [
       idx + 1,
@@ -262,6 +284,7 @@ async function buildMultiOpnameWorkbookBuffer(opnameList, combinedOpname) {
       t.newPoles,
       t.existingPoles,
       t.deadEnd,
+      deLabel,
       t.suspension,
       t.slackHanger,
       t.poleClamp,
@@ -273,7 +296,7 @@ async function buildMultiOpnameWorkbookBuffer(opnameList, combinedOpname) {
     for (let c = 1; c <= rekapHeaders.length; c++) {
       const cell = row.getCell(c);
       cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
-      if (c !== 2) cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      if (c !== 2 && c !== 7) cell.alignment = { horizontal: 'center', vertical: 'middle' };
     }
     rr++;
   });
@@ -281,16 +304,60 @@ async function buildMultiOpnameWorkbookBuffer(opnameList, combinedOpname) {
   const lastRekapRow = rr - 1;
   const gtRow = wsRekap.getRow(rr);
   gtRow.getCell(2).value = 'GRAND TOTAL';
-  const colLetters = ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
-  colLetters.forEach((col, i) => {
-    gtRow.getCell(i + 3).value = { formula: `SUM(${col}3:${col}${lastRekapRow})` };
+  const sumCols = [
+    { col: 'C', idx: 3 },
+    { col: 'D', idx: 4 },
+    { col: 'E', idx: 5 },
+    { col: 'F', idx: 6 },
+    { col: 'H', idx: 8 },
+    { col: 'I', idx: 9 },
+    { col: 'J', idx: 10 },
+    { col: 'K', idx: 11 },
+    { col: 'L', idx: 12 },
+    { col: 'M', idx: 13 },
+    { col: 'N', idx: 14 },
+  ];
+  sumCols.forEach(({ col, idx }) => {
+    gtRow.getCell(idx).value = { formula: `SUM(${col}3:${col}${lastRekapRow})` };
   });
   gtRow.font = { bold: true };
   for (let c = 1; c <= rekapHeaders.length; c++) {
     const cell = gtRow.getCell(c);
     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } };
     cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
-    if (c !== 2) cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    if (c !== 2 && c !== 7) cell.alignment = { horizontal: 'center', vertical: 'middle' };
+  }
+
+  // Breakdown Dead-End by type below GRAND TOTAL
+  const combinedDeEntries = Object.entries(combinedOpname.totals.deadEndByType || {}).filter(
+    ([, qty]) => qty > 0
+  );
+  if (combinedDeEntries.length > 0) {
+    let br = rr + 2;
+    const brHdr = wsRekap.getRow(br);
+    brHdr.getCell(2).value = 'REKAP DEAD END PER JENIS';
+    brHdr.getCell(3).value = 'QTY';
+    brHdr.getCell(4).value = 'SATUAN';
+    brHdr.font = { bold: true };
+    for (let c = 2; c <= 4; c++) {
+      const cell = brHdr.getCell(c);
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
+      cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+      if (c > 2) cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    }
+    br++;
+    for (const [deType, qty] of combinedDeEntries) {
+      const row = wsRekap.getRow(br);
+      row.getCell(2).value = deType.toUpperCase();
+      row.getCell(3).value = qty;
+      row.getCell(4).value = 'pcs';
+      row.getCell(3).alignment = { horizontal: 'center', vertical: 'middle' };
+      row.getCell(4).alignment = { horizontal: 'center', vertical: 'middle' };
+      for (let c = 2; c <= 4; c++) {
+        row.getCell(c).border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+      }
+      br++;
+    }
   }
 
   wsRekap.columns = [
@@ -300,6 +367,7 @@ async function buildMultiOpnameWorkbookBuffer(opnameList, combinedOpname) {
     { width: 11 },
     { width: 14 },
     { width: 12 },
+    { width: 28 },
     { width: 13 },
     { width: 15 },
     { width: 13 },
@@ -310,6 +378,10 @@ async function buildMultiOpnameWorkbookBuffer(opnameList, combinedOpname) {
   ];
 
   // 2. Sheet OPNAME (Combined all poles)
+  const combinedSingleDe = combinedOpname.totals.primaryDeadEndType
+    ? combinedOpname.totals.primaryDeadEndType.toUpperCase()
+    : 'DEAD END';
+
   const ws = wb.addWorksheet('OPNAME', {
     views: [{ state: 'frozen', ySplit: 2 }],
   });
@@ -322,7 +394,7 @@ async function buildMultiOpnameWorkbookBuffer(opnameList, combinedOpname) {
     'POLE ID',
     'TIPE POLE',
     'LINE',
-    'DEAD END',
+    combinedSingleDe,
     'SUSPENSION',
     'SLACK HANGER',
     'POLE CLAMP',
@@ -389,7 +461,7 @@ async function buildMultiOpnameWorkbookBuffer(opnameList, combinedOpname) {
     { width: 28 },
     { width: 12 },
     { width: 12 },
-    { width: 12 },
+    { width: Math.max(14, combinedSingleDe.length + 3) },
     { width: 13 },
     { width: 15 },
     { width: 13 },
